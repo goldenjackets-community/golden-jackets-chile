@@ -9,7 +9,7 @@
   path { transition: fill 0.3s, stroke 0.3s; cursor: pointer; }
   path:hover { fill: #3d3d6e; stroke: #FFD700; stroke-width: 1.2; }
   #CLRM { fill: #3a3a5e; stroke: #FFD700; stroke-width: 1.5; }
-  text { font-family: Arial, sans-serif; font-size: 22px; fill: #888; text-anchor: middle; pointer-events: none; }
+  text { font-family: Arial, sans-serif; font-size: 10px; fill: #888; text-anchor: middle; pointer-events: none; }
   #CLRM + text, text.active { fill: #FFD700; font-weight: bold; }
 </style>
 <g id="features">
