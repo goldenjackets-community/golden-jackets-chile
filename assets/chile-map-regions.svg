@@ -8,7 +8,7 @@
  <style>
   path { transition: fill 0.3s, stroke 0.3s; cursor: pointer; }
   path:hover { fill: #3d3d6e; stroke: #FFD700; stroke-width: 1.2; }
-  #CLRM { fill: #4a3a1e; stroke: #FFD700; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(255,215,0,0.5)); }
+  #CLRM { fill: #B8860B; stroke: #FFD700; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(255,215,0,0.6)); }
   text { font-family: Arial, sans-serif; font-size: 10px; fill: #888; text-anchor: middle; pointer-events: none; }
   #CLRM + text, text.active { fill: #FFD700;  }
 </style>
