@@ -150,7 +150,7 @@
     .map-section { text-align: center; padding: 20px 20px 10px; }
     .map-section h2 { font-size: 1.4em; color: var(--gold); margin-bottom: 8px; }
     .map-section .tip { font-size: 0.8em; color: var(--text-dimmer); margin-bottom: 5px; }
-    .map-container { max-width: 400px; margin: 0 auto; position: relative; }
+    .map-container { margin: 0 auto; position: relative; overflow: visible; }
     .map-container svg { width: 100%; height: auto; }
     #chile-map path { fill: var(--map-fill); stroke: var(--map-stroke); stroke-width: 0.8; transition: fill 0.3s, stroke 0.3s; }
     #chile-map path.active { fill: var(--map-active); }
@@ -485,7 +485,7 @@
     <p class="tip">Golden Jackets across Chile</p>
     <div class="map-container">
       <!-- Connection lines between pins -->
-      <img src="assets/chile-map-regions.svg" alt="Chile Map" style="max-width:180px;height:auto;margin:0 auto;display:block;">
+      <img src="assets/chile-map-regions.svg" alt="Chile Map" style="max-width:220px;height:auto;margin:0 auto;display:block;">
       <div class="map-pin" style="top:39%;left:53%" onclick="filterByState('RM')"><span class="pin-icon">📍</span><span class="pin-count gold-count">1</span></div>
     </div>
     
