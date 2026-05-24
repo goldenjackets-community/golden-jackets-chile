@@ -4,7 +4,7 @@
 ************* Free for Commercial Use, full terms at  https://simplemaps.com/resources/svg-license ************
 ************* Attribution is appreciated! https://simplemaps.com *******************************************-->
 
-<svg baseprofile="tiny" fill="#2d2d4e" height="1000" stroke="#B8860B" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8" version="1.2" viewBox="420 65 130 685" width="120" xmlns="http://www.w3.org/2000/svg">
+<svg baseprofile="tiny" fill="#2d2d4e" height="1000" stroke="#B8860B" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8" version="1.2" viewBox="420 72 130 680" width="120" xmlns="http://www.w3.org/2000/svg">
  <style>
   path { transition: fill 0.3s, stroke 0.3s; cursor: pointer; }
   path:hover { fill: #3d3d6e; stroke: #FFD700; stroke-width: 1.2; }
