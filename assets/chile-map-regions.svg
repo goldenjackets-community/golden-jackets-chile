@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 200 800" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .region { fill: #1a1a2e; stroke: #B8860B; stroke-width: 0.5; transition: fill 0.3s; cursor: pointer; }
+    .region:hover { fill: #2a2a4e; }
+    .region.active { fill: #3a3a5e; stroke: #FFD700; stroke-width: 1; }
+    .label { font-family: Arial, sans-serif; font-size: 7px; fill: #888; text-anchor: middle; pointer-events: none; }
+    .label-active { fill: #FFD700; font-weight: bold; }
+  </style>
+  <!-- Chile simplified shape with regions -->
+  <!-- Arica y Parinacota -->
+  <path class="region" data-region="AP" d="M80,10 L120,10 L118,40 L82,40 Z"/>
+  <text class="label" x="100" y="28">AP</text>
+  <!-- Tarapacá -->
+  <path class="region" data-region="TA" d="M82,40 L118,40 L116,75 L84,75 Z"/>
+  <text class="label" x="100" y="60">TA</text>
+  <!-- Antofagasta -->
+  <path class="region" data-region="AN" d="M84,75 L116,75 L114,130 L86,130 Z"/>
+  <text class="label" x="100" y="105">AN</text>
+  <!-- Atacama -->
+  <path class="region" data-region="AT" d="M86,130 L114,130 L112,180 L88,180 Z"/>
+  <text class="label" x="100" y="158">AT</text>
+  <!-- Coquimbo -->
+  <path class="region" data-region="CO" d="M88,180 L112,180 L110,230 L90,230 Z"/>
+  <text class="label" x="100" y="208">CO</text>
+  <!-- Valparaíso -->
+  <path class="region" data-region="VS" d="M90,230 L110,230 L108,270 L92,270 Z"/>
+  <text class="label" x="100" y="253">VS</text>
+  <!-- Metropolitana (Santiago) -->
+  <path class="region active" data-region="RM" d="M92,270 L108,270 L107,310 L93,310 Z"/>
+  <text class="label label-active" x="100" y="293">RM</text>
+  <!-- O'Higgins -->
+  <path class="region" data-region="OH" d="M93,310 L107,310 L106,350 L94,350 Z"/>
+  <text class="label" x="100" y="333">OH</text>
+  <!-- Maule -->
+  <path class="region" data-region="ML" d="M94,350 L106,350 L105,395 L95,395 Z"/>
+  <text class="label" x="100" y="375">ML</text>
+  <!-- Ñuble -->
+  <path class="region" data-region="NB" d="M95,395 L105,395 L104,425 L96,425 Z"/>
+  <text class="label" x="100" y="413">NB</text>
+  <!-- Biobío -->
+  <path class="region" data-region="BI" d="M96,425 L104,425 L103,465 L97,465 Z"/>
+  <text class="label" x="100" y="448">BI</text>
+  <!-- Araucanía -->
+  <path class="region" data-region="AR" d="M97,465 L103,465 L102,505 L98,505 Z"/>
+  <text class="label" x="100" y="488">AR</text>
+  <!-- Los Ríos -->
+  <path class="region" data-region="LR" d="M98,505 L102,505 L101,540 L99,540 Z"/>
+  <text class="label" x="100" y="525">LR</text>
+  <!-- Los Lagos -->
+  <path class="region" data-region="LL" d="M95,540 L105,540 L103,600 L97,600 Z"/>
+  <text class="label" x="100" y="573">LL</text>
+  <!-- Aysén -->
+  <path class="region" data-region="AI" d="M93,600 L107,600 L105,680 L95,680 Z"/>
+  <text class="label" x="100" y="643">AI</text>
+  <!-- Magallanes -->
+  <path class="region" data-region="MA" d="M90,680 L110,680 L108,780 L92,780 Z"/>
+  <text class="label" x="100" y="733">MA</text>
+</svg>

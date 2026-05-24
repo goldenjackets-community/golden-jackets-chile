@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GJ Chile - Member Card Generator</title>
+<style>
+  body { background:#0a0a1a; font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; align-items:center; padding:40px; color:#fff; }
+  .controls { margin-bottom:30px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:600px; }
+  .controls input, .controls select { padding:8px 12px; background:#1a1a30; border:1px solid #333; border-radius:6px; color:#fff; font-size:0.9em; }
+  .controls input { width:200px; }
+  .card { width:280px; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:28px 20px; }
+  .card.golden { background:linear-gradient(135deg,#B8860B,#FFD700,#B8860B); }
+  .card.alumni { background:linear-gradient(135deg,#8B6914,#C9A020,#8B6914); }
+  .card.challenger { background:linear-gradient(135deg,#707080,#C0C0C0,#707080); }
+  .logo { position:absolute; top:20px; left:20px; font-size:0.9em; font-weight:800; }
+  .card.golden .logo { color:#151528; }
+  .card.alumni .logo { color:#151528; }
+  .card.challenger .logo { color:#151528; }
+  .badge { position:absolute; top:16px; right:20px; padding:4px 12px; border-radius:12px; font-size:0.7em; font-weight:700; background:rgba(0,0,0,0.3); color:#fff; }
+  .photo { width:90px; height:90px; border-radius:50%; object-fit:cover; margin-bottom:16px; margin-top:20px; border:3px solid rgba(0,0,0,0.3); }
+  .name { font-size:1.1em; font-weight:800; margin-bottom:4px; color:#151528; }
+  .location { color:rgba(0,0,0,0.6); font-size:0.75em; margin-bottom:6px; }
+  .role { font-size:0.75em; margin-bottom:12px; font-weight:700; color:#151528; }
+  .title { color:rgba(0,0,0,0.7); font-size:0.75em; margin-bottom:16px; }
+  .tags { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:16px; }
+  .tag { background:rgba(0,0,0,0.2); color:#fff; padding:4px 12px; border-radius:10px; font-size:0.7em; font-weight:700; }
+  .linkedin a { background:#0077B5; color:#fff; padding:4px 10px; border-radius:6px; text-decoration:none; font-size:0.7em; font-weight:700; }
+</style>
+</head>
+<body>
+<h2 style="color:#FFD700;margin-bottom:5px;">🏆 GJ Chile — Member Card Generator</h2>
+<p style="color:#888;margin-bottom:20px;font-size:0.75em;">Fill in the details and screenshot the card below</p>
+<div class="controls">
+  <select id="category" onchange="update()">
+    <option value="golden">🏆 Golden Jacket</option>
+    <option value="alumni">🎖️ Alumni</option>
+    <option value="challenger">⚡ Challenger</option>
+  </select>
+  <input type="text" id="name" placeholder="Full Name" oninput="update()">
+  <input type="text" id="loc" placeholder="City, Region, Chile" oninput="update()">
+  <input type="text" id="role" placeholder="Role (Chapter Lead, Member...)" oninput="update()">
+  <input type="text" id="title" placeholder="Title (e.g. Cloud Architect | 12x AWS)" oninput="update()">
+  <input type="text" id="tags" placeholder="Tags (comma separated)" oninput="update()">
+  <input type="text" id="linkedin" placeholder="LinkedIn URL" oninput="update()">
+  <input type="file" id="photo" accept="image/*" onchange="loadPhoto()">
+</div>
+<div class="card golden" id="card">
+  <div class="logo">GJ <span>Chile</span></div>
+  <div class="badge" id="cardBadge">🏆 Golden Jacket</div>
+  <img class="photo" id="cardPhoto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Crect fill='%231a1a30' width='90' height='90'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%23666' font-size='14'%3EPhoto%3C/text%3E%3C/svg%3E">
+  <div class="name" id="cardName">Member Name</div>
+  <div class="location" id="cardLoc">City, Region, Chile</div>
+  <div class="role" id="cardRole">🏆 Golden Jacket Member</div>
+  <div class="title" id="cardTitle">Cloud Architect | 12x AWS Certified</div>
+  <div class="tags" id="cardTags"><span class="tag">Golden Jacket</span></div>
+  <div class="linkedin" id="cardLinkedin"><a href="#">in</a></div>
+</div>
+<script>
+var labels = { golden:'Golden Jacket', alumni:'Alumni', challenger:'Challenger' };
+var icons = { golden:'🏆', alumni:'🎖️', challenger:'⚡' };
+function update() {
+  var cat = document.getElementById('category').value;
+  document.getElementById('card').className = 'card ' + cat;
+  document.getElementById('cardBadge').textContent = icons[cat] + ' ' + labels[cat];
+  var n = document.getElementById('name').value;
+  var l = document.getElementById('loc').value;
+  var r = document.getElementById('role').value;
+  var ti = document.getElementById('title').value;
+  var tags = document.getElementById('tags').value;
+  var li = document.getElementById('linkedin').value;
+  if(n) document.getElementById('cardName').textContent = n;
+  if(l) document.getElementById('cardLoc').textContent = l;
+  document.getElementById('cardRole').textContent = icons[cat] + ' ' + labels[cat] + ' ' + (r || 'Member');
+  if(ti) document.getElementById('cardTitle').textContent = ti;
+  if(tags) {
+    document.getElementById('cardTags').innerHTML = tags.split(',').map(function(x){ return '<span class="tag">'+x.trim()+'</span>'; }).join('');
+  } else {
+    document.getElementById('cardTags').innerHTML = '<span class="tag">' + labels[cat] + '</span>';
+  }
+  if(li) document.getElementById('cardLinkedin').innerHTML = '<a href="'+li+'" target="_blank">in</a>';
+}
+function loadPhoto() {
+  var f = document.getElementById('photo').files[0];
+  if(f) { var r = new FileReader(); r.onload = function(e){ document.getElementById('cardPhoto').src = e.target.result; }; r.readAsDataURL(f); }
+}
+</script>
+</body>
+</html>

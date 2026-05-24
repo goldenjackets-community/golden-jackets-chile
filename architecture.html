@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Jackets Chile — Architecture</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #0f0f1a; color: #e0e0e0; overflow: hidden; }
+#app { width: 100vw; height: 100vh; }
+.header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(15,15,26,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #2a2a45; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.1em; color: #FFD700; }
+.header a { color: #888; text-decoration: none; font-size: 0.85em; }
+.header a:hover { color: #FFD700; }
+.canvas { width: 100vw; height: calc(100vh - 50px); margin-top: 50px; position: relative; overflow: hidden; cursor: grab; }
+.canvas:active { cursor: grabbing; }
+.canvas-inner { position: absolute; width: 1400px; height: 700px; transform-origin: 0 0; }
+.node { position: absolute; background: #1a1a30; border: 1px solid #2a2a45; border-radius: 12px; padding: 14px 18px; min-width: 160px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.node:hover { border-color: rgba(255,215,0,0.5); box-shadow: 0 0 20px rgba(255,215,0,0.15); transform: translateY(-2px); }
+.node .icon { font-size: 1.8em; margin-bottom: 6px; }
+.node .name { font-size: 0.8em; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.node .detail { font-size: 0.65em; color: #888; line-height: 1.4; }
+.node.lambda { border-color: #f90; }
+.node.lambda .name { color: #f90; }
+.node.s3 { border-color: #3ecf8e; }
+.node.s3 .name { color: #3ecf8e; }
+.node.cloudfront { border-color: #8b5cf6; }
+.node.cloudfront .name { color: #8b5cf6; }
+.node.cognito { border-color: #a855f7; }
+.node.cognito .name { color: #a855f7; }
+.node.dynamodb { border-color: #3b82f6; }
+.node.dynamodb .name { color: #3b82f6; }
+.node.github { border-color: #e0e0e0; }
+.node.github .name { color: #e0e0e0; }
+.node.sns { border-color: #ec4899; }
+.node.sns .name { color: #ec4899; }
+.node.backup { border-color: #14b8a6; }
+.node.backup .name { color: #14b8a6; }
+.node.route53 { border-color: #a855f7; }
+.node.route53 .name { color: #a855f7; }
+.node.user { border-color: #FFD700; }
+.node.user .name { color: #FFD700; }
+svg.edges { position: absolute; top: 0; left: 0; width: 1400px; height: 700px; pointer-events: none; }
+.edge { stroke-width: 2.5; fill: none; opacity: 0.8; }
+.edge-animated { stroke-dasharray: 12 6; animation: flow 0.7s linear infinite; }
+@keyframes flow { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -36; } }
+.node.alarm-active { border-color: #ef4444 !important; animation: pulse-alarm 0.5s infinite; box-shadow: 0 0 30px rgba(239,68,68,0.8) !important; background: rgba(239,68,68,0.15) !important; }
+@keyframes pulse-alarm { 0%,100% { box-shadow: 0 0 15px rgba(239,68,68,0.4); transform: scale(1); } 50% { box-shadow: 0 0 40px rgba(239,68,68,1); transform: scale(1.05); } }
+.legend { position: fixed; bottom: 20px; left: 20px; background: rgba(26,26,48,0.95); border: 1px solid #2a2a45; border-radius: 10px; padding: 14px 18px; font-size: 0.7em; z-index: 100; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 8px; z-index: 100; }
+.controls button { background: #1a1a30; border: 1px solid #2a2a45; color: #e0e0e0; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.1em; }
+.controls button:hover { border-color: #FFD700; }
+.tooltip { position: fixed; background: #1a1a30; border: 1px solid #FFD700; border-radius: 8px; padding: 12px 16px; font-size: 0.75em; max-width: 280px; z-index: 200; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.tooltip .tt-title { color: #FFD700; font-weight: 700; margin-bottom: 4px; }
+.tooltip .tt-body { color: #ccc; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧥 Golden Jackets — Live Architecture</h1>
+  <a href="/admin.html">← Back to Admin</a>
+</div>
+
+<div class="canvas" id="canvas">
+  <div class="canvas-inner" id="canvasInner">
+    <svg class="edges" id="edges" width="1400" height="700"></svg>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f90"></div> Lambda</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3ecf8e"></div> S3</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div> CloudFront</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Cognito</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> DynamoDB</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0"></div> GitHub</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ec4899"></div> SNS</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#14b8a6"></div> Backup</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div> Route 53</div>
+</div>
+
+<div class="controls">
+  <button onclick="zoomIn()">+</button>
+  <button onclick="zoomOut()">−</button>
+  <button onclick="resetView()">⟲</button>
+  <button onclick="resetPositions()" title="Reset node positions">📌</button>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-title"></div>
+  <div class="tt-body"></div>
+</div>
+
+<script>
+let nodes = [];
+let edges = [];
+
+// Fetch live data
+async function loadArchitecture() {
+  try {
+    const resp = await fetch('/architecture-data.json?t=' + Date.now());
+    const data = await resp.json();
+    nodes = data.nodes;
+    edges = data.edges;
+    render();
+  } catch(e) {
+    // Fallback to static if JSON not available yet
+    nodes = [
+      { id: 'user', x: 80, y: 300, icon: '👤', name: 'User / Browser', detail: 'goldenjackets.cl', type: 'user', tooltip: 'End users accessing the community websites.' },
+      { id: 'route53', x: 300, y: 300, icon: '🌐', name: 'Route 53', detail: 'DNS\nZ07759013CMW6IJZYOD7K', type: 'route53', tooltip: 'DNS for goldenjackets.cl' },
+      { id: 'cf-br', x: 520, y: 200, icon: '⚡', name: 'CloudFront Chile', detail: 'E10YX1BT67IAVC\nd245cwyl4dcv9y.cloudfront.net', type: 'cloudfront', tooltip: 'CDN for Brazil chapter.' },
+      { id: 'cf-pl', x: 520, y: 400, icon: '⚡', name: 'CloudFront Chile', detail: 'E10YX1BT67IAVC\ngoldenjackets.cl', type: 'cloudfront', tooltip: 'CDN for Poland chapter.' },
+      { id: 's3-br', x: 740, y: 200, icon: '📦', name: 'S3 Chile', detail: 'goldenjackets.cl', type: 's3', tooltip: 'Static hosting for Brazil.' },
+      { id: 's3-pl', x: 740, y: 400, icon: '📦', name: 'S3 Chile (staging)', detail: 'staging bucket', type: 's3', tooltip: 'Static hosting for Poland.' },
+      { id: 'github', x: 960, y: 100, icon: '🐙', name: 'GitHub', detail: 'goldenjackets-community\ngolden-jackets-chile', type: 'github', tooltip: 'CI/CD: push → S3 → CloudFront' },
+      { id: 'cognito', x: 960, y: 300, icon: '🔐', name: 'Cognito', detail: 'us-east-1_Z0VzzrmIX\nGroups: chile', type: 'cognito', tooltip: 'Auth for Members Lounge.' },
+      { id: 'lambda-admin', x: 960, y: 480, icon: '⚙️', name: 'Lambda gj-admin', detail: 'Users, Backup, Articles', type: 'lambda', tooltip: 'Admin panel API.' },
+      { id: 'lambda-apply', x: 740, y: 580, icon: '⚙️', name: 'Lambda gj-apply', detail: 'Member Applications', type: 'lambda', tooltip: 'Creates PR + card.' },
+      { id: 'lambda-counter', x: 520, y: 580, icon: '⚙️', name: 'Lambda gj-counter', detail: 'Visitor Counter Chile', type: 'lambda', tooltip: 'Independent counter.' },
+      { id: 'dynamodb', x: 300, y: 580, icon: '🗄️', name: 'DynamoDB', detail: 'Visitor counters', type: 'dynamodb', tooltip: 'gj-chile-visitors.' },
+      { id: 'sns', x: 1180, y: 480, icon: '📧', name: 'SNS', detail: 'goldenjackets-alerts', type: 'sns', tooltip: 'Email notifications.' },
+      { id: 'backup', x: 1180, y: 250, icon: '💾', name: 'Backup', detail: 'gj-chile-backups', type: 'backup', tooltip: 'Daily, 7-day retention.' },
+    ];
+    edges = [
+      { from: 'user', to: 'route53', color: '#FFD700' },
+      { from: 'route53', to: 'cf-br', color: '#8b5cf6' },
+      { from: 'route53', to: 'cf-pl', color: '#8b5cf6' },
+      { from: 'cf-br', to: 's3-br', color: '#3ecf8e' },
+      { from: 'cf-pl', to: 's3-pl', color: '#3ecf8e' },
+      { from: 'github', to: 's3-br', color: '#e0e0e0' },
+      { from: 'github', to: 's3-pl', color: '#e0e0e0' },
+      { from: 'user', to: 'cognito', color: '#ef4444' },
+      { from: 'cognito', to: 'lambda-admin', color: '#f90' },
+      { from: 'lambda-apply', to: 'github', color: '#e0e0e0' },
+      { from: 'lambda-apply', to: 'sns', color: '#ec4899' },
+      { from: 'lambda-admin', to: 'sns', color: '#ec4899' },
+      { from: 'lambda-admin', to: 'github', color: '#e0e0e0' },
+      { from: 'lambda-counter', to: 'dynamodb', color: '#3b82f6' },
+      { from: 's3-br', to: 'backup', color: '#14b8a6' },
+      { from: 's3-pl', to: 'backup', color: '#14b8a6' },
+      { from: 'user', to: 'lambda-apply', color: '#f90' },
+      { from: 'user', to: 'lambda-counter', color: '#f90' },
+    ];
+    render();
+  }
+}
+
+// Render
+const canvasInner = document.getElementById('canvasInner');
+const edgesSvg = document.getElementById('edges');
+const tooltip = document.getElementById('tooltip');
+let scale = 0.85, panX = 50, panY = 60;
+const savedView = JSON.parse(localStorage.getItem('gj-arch-view') || 'null');
+if (savedView) { scale = savedView.scale; panX = savedView.panX; panY = savedView.panY; }
+let dragging = false, startX, startY;
+
+function render() {
+  // Remove old nodes (keep SVG)
+  canvasInner.querySelectorAll('.node').forEach(n => n.remove());
+
+  // Load saved positions
+  const saved = JSON.parse(localStorage.getItem('gj-arch-positions') || '{}');
+
+  nodes.forEach(n => {
+    // Use saved position if exists
+    if (saved[n.id]) { n.x = saved[n.id].x; n.y = saved[n.id].y; }
+
+    const el = document.createElement('div');
+    el.className = `node ${n.type}`;
+    if (n.alarm === 'ALARM') el.className += ' alarm-active';
+    el.style.left = n.x + 'px';
+    el.style.top = n.y + 'px';
+    el.dataset.id = n.id;
+    let html = `<div class="icon">${n.icon}</div><div class="name">${n.name}</div><div class="detail">${n.detail.replace(/\n/g,'<br>')}</div>`;
+    // View Logs/Metrics link for all services
+    let logUrl = '';
+    const region = 'us-east-1';
+    const base = `https://${region}.console.aws.amazon.com`;
+    if (n.id && n.id.startsWith('lambda-')) {
+      const funcName = n.id.replace('lambda-','');
+      logUrl = `${base}/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/$252Faws$252Flambda$252F${funcName}`;
+    } else if (n.type === 'cloudfront') {
+      logUrl = `${base}/cloudfront/v4/home#/distributions`;
+    } else if (n.type === 's3') {
+      logUrl = `${base}/s3/home?region=${region}`;
+    } else if (n.id === 'cognito') {
+      logUrl = `${base}/cognito/v2/idp/user-pools/us-east-1_Z0VzzrmIX/users?region=${region}`;
+    } else if (n.id === 'dynamodb') {
+      logUrl = `${base}/dynamodbv2/home?region=${region}#tables`;
+    } else if (n.id === 'apigateway') {
+      logUrl = `${base}/apigateway/main/apis?region=${region}`;
+    } else if (n.id === 'sns') {
+      logUrl = `${base}/sns/v3/home?region=${region}#/topics`;
+    } else if (n.id === 'backup') {
+      logUrl = `${base}/backup/home?region=${region}#/backupvaults`;
+    } else if (n.id === 'route53') {
+      logUrl = `https://us-east-1.console.aws.amazon.com/route53/v2/hostedzones?region=${region}`;
+    }
+    if (logUrl) {
+      const color = n.alarm === 'ALARM' ? '#ef4444' : '#888';
+      html += `<a href="${logUrl}" target="_blank" style="display:block;margin-top:6px;font-size:0.65em;color:${color};text-decoration:underline;">📋 View →</a>`;
+    }
+    el.innerHTML = html;
+    el.addEventListener('mouseenter', e => showTooltip(e, n));
+    el.addEventListener('mouseleave', hideTooltip);
+
+    // Drag support
+    el.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      dragNode = { el, node: n, startX: e.clientX - n.x * scale, startY: e.clientY - n.y * scale };
+    });
+
+    canvasInner.appendChild(el);
+  });
+  renderEdges();
+  updateTransform();
+}
+
+let dragNode = null;
+document.addEventListener('mousemove', e => {
+  if (!dragNode) return;
+  const nx = (e.clientX - dragNode.startX) / scale;
+  const ny = (e.clientY - dragNode.startY) / scale;
+  dragNode.node.x = nx;
+  dragNode.node.y = ny;
+  dragNode.el.style.left = nx + 'px';
+  dragNode.el.style.top = ny + 'px';
+  renderEdges();
+});
+document.addEventListener('mouseup', () => {
+  if (dragNode) {
+    // Save position
+    const saved = JSON.parse(localStorage.getItem('gj-arch-positions') || '{}');
+    saved[dragNode.node.id] = { x: dragNode.node.x, y: dragNode.node.y };
+    localStorage.setItem('gj-arch-positions', JSON.stringify(saved));
+    dragNode = null;
+  }
+});
+
+function renderEdges() {
+  edgesSvg.innerHTML = '';
+  edges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    const x1 = from.x + 80, y1 = from.y + 40;
+    const x2 = to.x + 80, y2 = to.y + 40;
+    const mx = (x1 + x2) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+    path.setAttribute('class', 'edge edge-animated');
+    path.setAttribute('stroke', e.color);
+    edgesSvg.appendChild(path);
+  });
+}
+
+function showTooltip(e, node) {
+  tooltip.querySelector('.tt-title').textContent = node.name;
+  tooltip.querySelector('.tt-body').textContent = node.tooltip;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 15) + 'px';
+  tooltip.style.top = (e.clientY + 15) + 'px';
+}
+function hideTooltip() { tooltip.style.display = 'none'; }
+
+function updateTransform() {
+  canvasInner.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+  localStorage.setItem('gj-arch-view', JSON.stringify({panX, panY, scale}));
+}
+
+function zoomIn() { scale = Math.min(scale + 0.15, 2); updateTransform(); }
+function zoomOut() { scale = Math.max(scale - 0.15, 0.3); updateTransform(); }
+function resetView() { scale = 0.85; panX = 50; panY = 60; localStorage.removeItem('gj-arch-view'); updateTransform(); }
+function resetPositions() { localStorage.removeItem('gj-arch-positions'); loadArchitecture(); }
+
+// Pan
+const canvas = document.getElementById('canvas');
+canvas.addEventListener('mousedown', e => { dragging = true; startX = e.clientX - panX; startY = e.clientY - panY; });
+canvas.addEventListener('mousemove', e => { if (!dragging) return; panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(); });
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseleave', () => dragging = false);
+canvas.addEventListener('wheel', e => { e.preventDefault(); e.deltaY < 0 ? zoomIn() : zoomOut(); });
+
+loadArchitecture();
+</script>
+</body>
+</html>

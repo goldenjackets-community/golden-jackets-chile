@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golden Jackets Chile - Admin Console</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a1a; color: #e0e0e0; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 40px; border-bottom: 1px solid #1a1a30; }
+    .logo { font-weight: 800; font-size: 1.1em; color: #FFD700; }
+    .logo span { color: #888; font-weight: 400; }
+    .nav-links a { color: #FFD700; text-decoration: none; margin-left: 16px; font-size: 0.85em; }
+    .nav-links a:hover { text-decoration: underline; }
+    .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+    h1 { color: #FFD700; font-size: 1.6em; margin-bottom: 8px; }
+    .subtitle { color: #888; font-size: 0.9em; margin-bottom: 24px; }
+    .tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .tool-btn { padding: 14px 16px; background: #12122a; border: 1px solid #2a2a45; border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.3s; text-decoration: none; display: block; }
+    .tool-btn:hover { border-color: #FFD700; transform: translateY(-2px); }
+    .tool-btn .icon { font-size: 1.5em; margin-bottom: 6px; }
+    .tool-btn .label { color: #FFD700; font-weight: 700; font-size: 0.85em; }
+    .tool-btn .desc { color: #888; font-size: 0.7em; margin-top: 4px; }
+    .tool-btn.danger { border-color: #331111; }
+    .tool-btn.danger:hover { border-color: #f44336; }
+    .tool-btn.danger .label { color: #f44336; }
+    .tool-btn.green .label { color: #4CAF50; }
+    .tool-btn.orange .label { color: #ff9800; }
+    .output { background: #0a0a18; border: 1px solid #2a2a45; border-radius: 10px; padding: 20px; font-family: monospace; font-size: 0.85em; color: #ccc; min-height: 100px; max-height: 400px; overflow-y: auto; margin-bottom: 24px; display: none; }
+    .form-card { background: #12122a; border: 1px solid #2a2a45; border-radius: 10px; padding: 20px; margin-bottom: 24px; display: none; }
+    .form-card h3 { color: #FFD700; font-size: 1em; margin-bottom: 12px; }
+    .form-card input, .form-card select { width: 100%; padding: 10px; margin-bottom: 8px; background: #0a0a18; border: 1px solid #2a2a45; border-radius: 6px; color: #e0e0e0; font-family: inherit; font-size: 0.9em; }
+    .form-card button { padding: 10px 20px; background: linear-gradient(135deg, #FFD700, #B8860B); border: none; border-radius: 6px; color: #151528; font-weight: 700; cursor: pointer; font-size: 0.9em; }
+    .form-card .cancel { background: #1a1a30; border: 1px solid #2a2a45; color: #888; margin-left: 8px; }
+    footer { text-align: center; padding: 20px; color: #444; font-size: 0.8em; border-top: 1px solid #1a1a30; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">GJ <span>Chile</span> · Admin</div>
+    <div class="nav-links">
+      <a href="/members.html">← Back to Lounge</a>
+      <a href="/">Main Site</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>⚙️ Admin Console</h1>
+    <p class="subtitle">Manage users, backups, and deployments</p>
+
+    <div class="tools">
+      <div style="grid-column:1/-1;color:#FFD700;font-size:0.8em;font-weight:700;letter-spacing:1px;margin-top:10px;border-bottom:1px solid #2a2a45;padding-bottom:4px;">📋 MEMBERS</div>
+      <div class="tool-btn" onclick="listUsers()">
+        <div class="icon">📋</div>
+        <div class="label">List Users</div>
+        <div class="desc">View all Cognito users and status</div>
+      </div>
+      <div class="tool-btn" id="btnAllChapters" style="display:none;" onclick="listAllUsers()">
+        <div class="icon">🌍</div>
+        <div class="label">All Chapters</div>
+        <div class="desc">View users from all chapters (Global Admin)</div>
+      </div>
+      <div class="tool-btn" onclick="toggleCreateForm()">
+        <div class="icon">➕</div>
+        <div class="label">Create User</div>
+        <div class="desc">Add new member to Lounge</div>
+      </div>
+      <div class="tool-btn" onclick="resendAll()">
+        <div class="icon">📧</div>
+        <div class="label">Resend Pending</div>
+        <div class="desc">Resend temp password to all pending</div>
+      </div>
+      <div class="tool-btn danger" onclick="deleteUser()">
+        <div class="icon">🗑️</div>
+        <div class="label">Delete User</div>
+        <div class="desc">Remove user from Cognito</div>
+      </div>
+      <div class="tool-btn" onclick="listPRs('member')" style="border:1px solid #4CAF50;">
+        <div class="icon">📋</div>
+      <div style="grid-column:1/-1;color:#FFD700;font-size:0.8em;font-weight:700;letter-spacing:1px;margin-top:10px;border-bottom:1px solid #2a2a45;padding-bottom:4px;">📝 CONTENT</div>
+        <div class="label">Pending Applications</div>
+        <div class="desc">Review and approve new members</div>
+      </div>
+      <div class="tool-btn" onclick="listPRs('article')" style="border:1px solid #2196F3;">
+        <div class="icon">📝</div>
+        <div class="label">Pending Articles</div>
+        <div class="desc">Review and publish articles</div>
+      </div>
+      <div style="grid-column:1/-1;color:#FFD700;font-size:0.8em;font-weight:700;letter-spacing:1px;margin-top:10px;border-bottom:1px solid #2a2a45;padding-bottom:4px;">📊 MONITORING</div>
+      <div class="tool-btn green" onclick="backupStatus()">
+        <div class="icon">💾</div>
+        <div class="label">Backup Status</div>
+        <div class="desc">View backup job history</div>
+      </div>
+      <div class="tool-btn orange" onclick="restoreBackup()">
+        <div class="icon">♻️</div>
+        <div class="label">Restore</div>
+        <div class="desc">Restore site from latest backup</div>
+      </div>
+      <a class="tool-btn global-only" style="display:none;" href="https://github.com/goldenjackets-community/golden-jackets-chile/pulls" target="_blank">
+        <div class="icon">🔀</div>
+        <div class="label">Open PRs</div>
+        <div class="desc">Review pending pull requests</div>
+      </a>
+      <a class="tool-btn global-only" style="display:none;" href="https://github.com/goldenjackets-community/golden-jackets-chile/actions" target="_blank">
+        <div class="icon">🚀</div>
+        <div class="label">Deployments</div>
+        <div class="desc">GitHub Actions status</div>
+      </a>
+      <div style="grid-column:1/-1;color:#FFD700;font-size:0.8em;font-weight:700;letter-spacing:1px;margin-top:10px;border-bottom:1px solid #2a2a45;padding-bottom:4px;">🔧 TOOLS</div>
+      <a class="tool-btn" href="/card-generator.html" target="_blank">
+        <div class="icon">🪪</div>
+        <div class="label">Card Generator</div>
+        <div class="desc">Generate member cards</div>
+      </a>
+      <div class="tool-btn" onclick="showChangePhoto()">
+        <div class="icon">📷</div>
+        <div class="label">Change Photo</div>
+        <div class="desc">Update a member's photo</div>
+      </div>
+      <div class="tool-btn" onclick="exportCSV()">
+        <div class="icon">📥</div>
+        <div class="label">Export CSV</div>
+        <div class="desc">Download members list</div>
+      </div>
+      <div class="tool-btn" onclick="showMetrics()">
+        <div class="icon">📈</div>
+        <div class="label">Metrics</div>
+        <div class="desc">Members & articles stats</div>
+      </div>
+      <div class="tool-btn" onclick="moveMember()">
+        <div class="icon">🔄</div>
+        <div class="label">Move Member</div>
+        <div class="desc">Change category (Golden/Alumni/Challenger)</div>
+      </div>
+      <div class="tool-btn" onclick="window.open('/assets/chapter-leader-guide.pdf')">
+        <div class="icon">📖</div>
+        <div class="label">Operations Guide</div>
+        <div class="desc">Download Chapter Leader Guide (PDF)</div>
+      </div>
+      <div class="tool-btn" onclick="showBacklog()">
+        <div class="icon">📋</div>
+        <div class="label">Backlog</div>
+        <div class="desc">View project backlog</div>
+      </div>
+      <div class="tool-btn" onclick="window.open('/architecture.html','_blank')">
+        <div class="icon">🏗️</div>
+        <div class="label">Architecture</div>
+        <div class="desc">Live infrastructure diagram</div>
+      </div>
+      <a class="tool-btn" href="https://github.com/goldenjackets-community/golden-jackets-chile/blob/master/README.md" target="_blank">
+        <div class="icon">📖</div>
+        <div class="label">README</div>
+        <div class="desc">Project documentation</div>
+      </a>
+    </div>
+
+    <!-- Partner Clicks Stats -->
+    <div style="background:#12122a;border:1px solid #2a2a45;border-radius:10px;padding:20px;margin-bottom:24px;">
+      <h3 style="color:#FFD700;font-size:1em;margin-bottom:12px;">📊 Partner Clicks</h3>
+      <select id="partnerFilter" onchange="filterPartnerStats()" style="padding:8px;background:#0a0a18;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;font-size:0.9em;margin-bottom:12px;">
+        <option value="all">All Partners</option>
+        <option value="tutorialsdojo">Tutorials Dojo</option>
+        <option value="sundog">Sundog Education</option>
+      </select>
+      <select id="monthFilter" onchange="loadPartnerStats()" style="padding:8px;background:#0a0a18;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;font-size:0.9em;margin-bottom:12px;margin-left:8px;">
+      </select>
+      <div id="partnerStats" style="color:#888;font-size:0.9em;">Loading...</div>
+    </div>
+
+    <!-- Create User Form -->
+    <div class="form-card" id="createUserForm">
+      <h3>➕ Create New User</h3>
+      <input type="text" id="newUserName" placeholder="Full name">
+      <input type="email" id="newUserEmail" placeholder="Email">
+      <select id="newUserType">
+        <option value="golden">Golden Jacket (12/12)</option>
+        <option value="challenger-11">Challenger (11/12)</option>
+        <option value="challenger-10">Challenger (10/12)</option>
+      </select>
+      <div>
+        <button onclick="createUser()">Create & Send Invite</button>
+        <button class="cancel" onclick="toggleCreateForm()">Cancel</button>
+      </div>
+      <p id="createMsg" style="margin-top:8px;font-size:0.85em;"></p>
+    </div>
+
+    <!-- Output -->
+    <div class="output" id="adminOutput"></div>
+  </div>
+
+  <footer>Golden Jackets Chile © 2026 · Admin Console</footer>
+
+<script src="/config.js"></script>
+<script>
+var ADMIN_API = GJ_CONFIG.ADMIN_API;
+
+// Check auth
+var token = sessionStorage.getItem('gj_token');
+var email = sessionStorage.getItem('gj_email');
+if (!token || !GJ_CONFIG.ADMIN_EMAILS.includes(email)) {
+  document.body.innerHTML = '<div style="text-align:center;padding:100px;"><h2 style="color:#f44336;">Access Denied</h2><p style="color:#888;margin-top:12px;">Admin access restricted.</p><a href="/members.html" style="color:#FFD700;">← Back to Lounge</a></div>';
+}
+
+var lastAction = '';
+async function adminCall(action, extra) {
+  var out = document.getElementById('adminOutput');
+  var form = document.getElementById('createUserForm');
+  if (form && action !== 'create-user') form.style.display = 'none';
+  if (lastAction === action && out.style.display === 'block' && !extra) {
+    out.style.display = 'none';
+    lastAction = '';
+    return null;
+  }
+  lastAction = action;
+  out.style.display = 'block';
+  out.scrollIntoView({behavior:'smooth'});
+  out.innerHTML = '<span style="color:#FFD700;">Loading...</span>';
+  try {
+    var body = Object.assign({action: action}, extra || {});
+    var resp = await fetch(ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('gj_token')}, body: JSON.stringify(Object.assign(body, {chapter: GJ_CONFIG.CHAPTER}))});
+    // If unauthorized, try refresh token
+    if (resp.status === 401 || resp.status === 403) {
+      var refreshed = await refreshSession();
+      if (refreshed) {
+        resp = await fetch(ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('gj_token')}, body: JSON.stringify(Object.assign(body, {chapter: GJ_CONFIG.CHAPTER}))});
+      } else {
+        out.innerHTML = '<span style="color:#f44336;">Session expired. Please <a href="/members.html" style="color:#FFD700;">log in again</a>.</span>';
+        return null;
+      }
+    }
+    return await resp.json();
+  } catch(e) {
+    out.innerHTML = '<span style="color:#f44336;">Error: ' + e.message + '</span>';
+    return null;
+  }
+}
+
+// Refresh session function (uses Cognito refresh token)
+async function refreshSession() {
+  var refreshToken = sessionStorage.getItem('gj_refresh');
+  if (!refreshToken) return false;
+  try {
+    var resp = await fetch('https://cognito-idp.us-east-1.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.InitiateAuth'},
+      body: JSON.stringify({AuthFlow:'REFRESH_TOKEN_AUTH',ClientId:'6p0utci3h0mfsv02k4848vhhch',AuthParameters:{REFRESH_TOKEN:refreshToken}})
+    });
+    var data = await resp.json();
+    if (data.AuthenticationResult) {
+      sessionStorage.setItem('gj_token', data.AuthenticationResult.IdToken);
+      sessionStorage.setItem('gj_access', data.AuthenticationResult.AccessToken);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function listUsers() {
+  var data = await adminCall('list-users');
+  if (!data || !data.users) return;
+  var out = document.getElementById('adminOutput');
+  var confirmed = data.users.filter(function(u){return u.status==='CONFIRMED';});
+  var pending = data.users.filter(function(u){return u.status!=='CONFIRMED';});
+  var html = '<strong style="color:#FFD700;">Total: ' + data.users.length + ' users (' + confirmed.length + ' confirmed, ' + pending.length + ' pending)</strong><br><br>';
+  html += '<strong style="color:#4CAF50;">✅ Confirmed (' + confirmed.length + '):</strong><br>';
+  confirmed.forEach(function(u,i){ html += (i+1) + '. ' + u.email + '<br>'; });
+  html += '<br><strong style="color:#ff9800;">⏳ Pending (' + pending.length + '):</strong><br>';
+  pending.forEach(function(u,i){ html += (i+1) + '. ' + u.email + '<br>'; });
+  out.innerHTML = html;
+}
+
+function toggleCreateForm() {
+  var form = document.getElementById('createUserForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function createUser() {
+  var name = document.getElementById('newUserName').value;
+  var email = document.getElementById('newUserEmail').value;
+  var msg = document.getElementById('createMsg');
+  if (!name || !email) { msg.innerHTML = '<span style="color:#f44336;">Name and email required</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700;">Creating...</span>';
+  var data = await adminCall('create-user', {email: email});
+  if (!data) return;
+  msg.innerHTML = '<span style="color:#4CAF50;">✅ ' + data.message + '</span>';
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserEmail').value = '';
+}
+
+async function resendAll() {
+  var data = await adminCall('resend-pending');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ Resent to ' + data.count + ' users:</strong><br><br>' + (data.resent||[]).join('<br>');
+}
+
+async function deleteUser() {
+  var email = prompt('Enter email to delete:');
+  if (!email || !confirm('Delete ' + email + '?')) return;
+  var data = await adminCall('delete-user', {email: email});
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ ' + data.message + '</strong>';
+}
+
+async function showBacklog() {
+  var out = document.getElementById('adminOutput');
+  lastAction = lastAction === 'backlog' ? '' : 'backlog';
+  if (!lastAction) { out.style.display = 'none'; return; }
+  out.style.display = 'block';
+  out.innerHTML = '<span style="color:#FFD700;">Loading backlog...</span>';
+  try {
+    var resp = await fetch('https://raw.githubusercontent.com/goldenjackets-community/golden-jackets-chile/master/BACKLOG.md?t='+Date.now());
+    var md = await resp.text();
+    var lines = md.split('\n');
+    var html = '';
+    lines.forEach(function(l) {
+      if (l.startsWith('# ')) html += '<h2 style="color:#FFD700;margin:12px 0 8px;">' + l.slice(2) + '</h2>';
+      else if (l.startsWith('## ')) html += '<h3 style="color:#FFD700;margin:10px 0 6px;">' + l.slice(3) + '</h3>';
+      else if (l.startsWith('### ')) html += '<h4 style="color:#ccc;margin:8px 0 4px;">' + l.slice(4) + '</h4>';
+      else if (l.startsWith('- [x]')) html += '<div style="color:#4CAF50;">✅ ' + l.slice(6) + '</div>';
+      else if (l.startsWith('- [ ]')) html += '<div style="color:#ff9800;">⬜ ' + l.slice(6) + '</div>';
+      else if (l.startsWith('---')) html += '<hr style="border:none;border-top:1px solid #2a2a45;margin:12px 0;">';
+      else if (l.trim()) html += '<div style="color:#888;">' + l + '</div>';
+    });
+    out.innerHTML = html;
+  } catch(e) {
+    out.innerHTML = '<span style="color:#f44336;">Error loading backlog</span>';
+  }
+}
+
+async function backupStatus() {
+  var data = await adminCall('backup-status');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  if (data.jobs && data.jobs.length > 0) {
+    var h = '<strong style="color:#4CAF50;">💾 Latest Backup: ' + (data.latest || data.jobs[0].date || 'N/A') + '</strong><br>';
+    h += '<span style="color:var(--text-muted);font-size:0.85em;">Total backups: ' + (data.total_backups || data.jobs.length) + '</span><br><br>';
+    data.jobs.forEach(function(j){ h += j.status + ' ' + j.resource + ' — ' + j.date + '<br>'; });
+    out.innerHTML = h;
+  } else {
+    out.innerHTML = '<span style="color:#f44336;">⚠️ No backups found.</span><br><span style="color:var(--text-muted);font-size:0.85em;">Click "Backup Now" to create your first backup.</span>';
+  }
+}
+
+async function restoreBackup() {
+  if (!confirm('⚠️ ATENÇÃO: Isso vai sobrescrever o site atual com o último backup manual.\n\nTem certeza que quer restaurar?')) return;
+  if (!confirm('ÚLTIMA CONFIRMAÇÃO: Digite OK para restaurar.\n\nIsso NÃO pode ser desfeito facilmente (apenas via git push).')) return;
+  var data = await adminCall('restore-backup');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ ' + data.message + '</strong>';
+}
+
+// Export members as CSV
+async function exportCSV() {
+  var data = await adminCall('list-users');
+  if (!data || !data.users) return;
+  var csv = 'Email,Status,Created\n';
+  data.users.forEach(function(u){ csv += u.email+','+u.status+','+u.created+'\n'; });
+  var blob = new Blob([csv], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'golden-jackets-members-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  document.getElementById('adminOutput').innerHTML = '<strong style="color:#4CAF50;">✅ CSV downloaded (' + data.users.length + ' members)</strong>';
+}
+
+// Metrics dashboard
+async function showMetrics() {
+  var data = await adminCall('list-users');
+  if (!data || !data.users) return;
+  var out = document.getElementById('adminOutput');
+  var total = data.users.length;
+  var confirmed = data.users.filter(function(u){return u.status==='CONFIRMED';}).length;
+  var pending = total - confirmed;
+  // Group by month
+  var byMonth = {};
+  data.users.forEach(function(u){
+    var m = u.created ? u.created.slice(0,7) : 'unknown';
+    byMonth[m] = (byMonth[m]||0) + 1;
+  });
+  var html = '<strong style="color:#FFD700;">📈 Community Metrics</strong><br><br>';
+  html += '<table style="width:100%;font-size:0.9em;border-collapse:collapse;">';
+  html += '<tr style="border-bottom:1px solid #2a2a45;"><th style="text-align:left;padding:6px;color:#FFD700;">Metric</th><th style="padding:6px;color:#FFD700;">Value</th></tr>';
+  html += '<tr><td style="padding:6px;color:#e0e0e0;">Total Members</td><td style="padding:6px;text-align:center;color:#4CAF50;font-weight:700;">'+total+'</td></tr>';
+  html += '<tr><td style="padding:6px;color:#e0e0e0;">Confirmed</td><td style="padding:6px;text-align:center;color:#4CAF50;font-weight:700;">'+confirmed+'</td></tr>';
+  html += '<tr><td style="padding:6px;color:#e0e0e0;">Pending</td><td style="padding:6px;text-align:center;color:#FF9800;font-weight:700;">'+pending+'</td></tr>';
+  html += '</table><br>';
+  html += '<strong style="color:#FFD700;">Members by Month</strong><br><br>';
+  html += '<table style="width:100%;font-size:0.9em;border-collapse:collapse;">';
+  html += '<tr style="border-bottom:1px solid #2a2a45;"><th style="text-align:left;padding:6px;color:#FFD700;">Month</th><th style="padding:6px;color:#FFD700;">New Members</th></tr>';
+  Object.keys(byMonth).sort().reverse().forEach(function(m){
+    html += '<tr><td style="padding:6px;color:#e0e0e0;">'+m+'</td><td style="padding:6px;text-align:center;color:#2196F3;font-weight:700;">'+byMonth[m]+'</td></tr>';
+  });
+  html += '</table>';
+  out.innerHTML = html;
+}
+
+// Promote Challenger to Golden Jacket
+async function promoteChallenger() {
+  var email = prompt('Enter the Challenger email to promote to Golden Jacket:');
+  if (!email) return;
+  var confirm1 = confirm('Promote ' + email + ' from Challenger to Golden Jacket?\n\nThis will NOT automatically update the site card. You need to manually move the card in index.html from Challengers to Golden Jackets section.');
+  if (!confirm1) return;
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<strong style="color:#FF9800;">⚠️ Reminder:</strong> To complete the promotion, manually move the member card in index.html from the Challengers section to Golden Jackets section, update the tags, and push to main.<br><br><strong style="color:#4CAF50;">Member ' + email + ' flagged for promotion.</strong>';
+}
+
+async function moveMember() {
+  var name = prompt('Enter the member name (exactly as shown on the site):');
+  if (!name) return;
+  var target = prompt('Move to which category?\n\n1 = Golden Jacket\n2 = Alumni\n3 = Challenger\n\nEnter 1, 2 or 3:');
+  if (!target || !['1','2','3'].includes(target)) { alert('Invalid option'); return; }
+  var categories = {'1':'golden','2':'alumni','3':'challenger'};
+  var labels = {'1':'Golden Jacket','2':'Alumni','3':'Challenger'};
+  var cat = categories[target];
+  if (!confirm('Move "' + name + '" to ' + labels[target] + '?')) return;
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<span style="color:#FFD700;">Moving member...</span>';
+  var data = await adminCall('move-member', {name: name, target: cat});
+  if (data && data.message) {
+    out.innerHTML = '<span style="color:#4CAF50;">✅ ' + data.message + '</span>';
+  } else if (data && data.error) {
+    out.innerHTML = '<span style="color:#f44336;">❌ ' + data.error + '</span>';
+  }
+}
+
+// Load partner click stats
+var partnerData = {};
+function loadPartnerStats(){
+  var month = document.getElementById('monthFilter').value || '';
+  var url = 'https://97i05orlfa.execute-api.us-east-1.amazonaws.com/clicks';
+  if(month) url += '?month=' + month;
+  fetch(url)
+    .then(r=>r.json())
+    .then(d=>{
+      partnerData = d;
+      filterPartnerStats();
+    }).catch(function(){ document.getElementById('partnerStats').innerHTML = '<span style="color:#f44336;">Failed to load</span>'; });
+}
+
+// Populate month filter (all months of 2026)
+(function(){
+  var sel = document.getElementById('monthFilter');
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  var currentMonth = now.getMonth();
+  for(var i=0;i<12;i++){
+    var val = '2026-'+(('0'+(i+1)).slice(-2));
+    var label = months[i]+' 2026';
+    sel.innerHTML += '<option value="'+val+'"'+(i===currentMonth?' selected':'')+'>'+label+'</option>';
+  }
+  loadPartnerStats();
+})();
+
+function filterPartnerStats(){
+  var filter = document.getElementById('partnerFilter').value;
+  var month = document.getElementById('monthFilter').value;
+  var html = '<table style="width:100%;font-size:0.9em;border-collapse:collapse;">';
+  html += '<tr style="border-bottom:1px solid #2a2a45;"><th style="text-align:left;padding:6px;color:#FFD700;">Partner</th><th style="padding:6px;color:#FFD700;">Total Clicks</th><th style="padding:6px;color:#FFD700;">Unique Visitors</th><th style="padding:6px;color:#FFD700;">'+month+' Clicks</th><th style="padding:6px;color:#FFD700;">'+month+' Unique</th></tr>';
+  for(var p in partnerData){
+    if(filter !== 'all' && p !== filter) continue;
+    var d = partnerData[p];
+    html += '<tr style="border-bottom:1px solid #1a1a30;"><td style="padding:6px;color:#e0e0e0;">'+ p +'</td><td style="padding:6px;text-align:center;color:#4CAF50;font-weight:700;">'+ d.total_clicks +'</td><td style="padding:6px;text-align:center;color:#2196F3;font-weight:700;">'+ d.unique_visitors +'</td><td style="padding:6px;text-align:center;color:#FF9800;font-weight:700;">'+ (d.month_clicks||0) +'</td><td style="padding:6px;text-align:center;color:#9C27B0;font-weight:700;">'+ (d.month_unique||0) +'</td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('partnerStats').innerHTML = html;
+}
+// Global admin: show All Chapters button
+var GLOBAL_ADMINS = ['ricardo.gulias@goldenjacketsbrazil.com'];
+if(GLOBAL_ADMINS.includes(email)){document.querySelectorAll(".global-only").forEach(function(el){el.style.display="block"});}
+if (GLOBAL_ADMINS.includes(email)) { var btn = document.getElementById('btnAllChapters'); if(btn) btn.style.display=''; }
+
+async function listAllUsers() {
+  var body = {action:'list-users'};
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<span style="color:#FFD700;">Loading all chapters...</span>';
+  try {
+    var resp = await fetch(GJ_CONFIG.ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('gj_token')}, body: JSON.stringify(body)});
+    var data = await resp.json();
+    if (!data || !data.users) return;
+    var confirmed = data.users.filter(function(u){return u.status==='CONFIRMED';});
+    var pending = data.users.filter(function(u){return u.status!=='CONFIRMED';});
+    var html = '<strong style="color:#FFD700;">🌍 ALL CHAPTERS — Total: ' + data.users.length + ' users (' + confirmed.length + ' confirmed, ' + pending.length + ' pending)</strong><br><br>';
+    html += '<strong style="color:#4CAF50;">✅ Confirmed (' + confirmed.length + '):</strong><br>';
+    confirmed.forEach(function(u){ html += u.email + '<br>'; });
+    html += '<br><strong style="color:#FF9800;">⏳ Pending (' + pending.length + '):</strong><br>';
+    pending.forEach(function(u){ html += u.email + ' — ' + u.status + '<br>'; });
+    out.innerHTML = html;
+  } catch(e) { out.innerHTML = '<span style="color:#f44336;">Error: '+e.message+'</span>'; }
+}
+function showChangePhoto() {
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<span style="color:#FFD700;">Loading members...</span>';
+  adminCall('list-members').then(function(data) {
+    if (!data || !data.members) { out.innerHTML = '<span style="color:#f44336;">Failed to load members</span>'; return; }
+    var opts = data.members.map(function(n){ return '<option value="' + n + '">' + n + '</option>'; }).join('');
+    out.innerHTML = '<strong style="color:#FFD700;">📷 Change Member Photo</strong><br><br>' +
+      '<select id="photoName" style="width:100%;padding:8px;margin-bottom:8px;background:#1a1a30;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;"><option value="">-- Select member --</option>' + opts + '</select><br>' +
+      '<input id="photoFile" type="file" accept="image/*" style="margin-bottom:12px;color:#e0e0e0;"><br>' +
+      '<button onclick="uploadPhoto()" style="padding:8px 20px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:6px;color:#151528;font-weight:700;cursor:pointer;">Upload & Update</button>' +
+      '<p id="photoMsg" style="margin-top:8px;font-size:0.85em;"></p>';
+  });
+}
+async function uploadPhoto() {
+  var name = document.getElementById('photoName').value.trim();
+  var file = document.getElementById('photoFile').files[0];
+  var msg = document.getElementById('photoMsg');
+  if (!name || !file) { msg.innerHTML = '<span style="color:#f44336;">Please enter name and select a photo.</span>'; return; }
+  if (file.size > 5000000) { msg.innerHTML = '<span style="color:#f44336;">Photo too large. Max 5MB.</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700;">Uploading...</span>';
+  var reader = new FileReader();
+  reader.onload = async function() {
+    try {
+      var base64 = reader.result.split(',')[1];
+      var resp = await fetch(ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('gj_token')}, body: JSON.stringify({action:'update-photo', chapter: GJ_CONFIG.CHAPTER, name: name, photo: base64, filename: file.name})});
+      var data = await resp.json();
+      if (data.message) { msg.innerHTML = '<span style="color:#4CAF50;">✅ ' + data.message + '</span>'; }
+      else { msg.innerHTML = '<span style="color:#f44336;">❌ ' + (data.error || 'Unknown error') + '</span>'; }
+    } catch(e) { msg.innerHTML = '<span style="color:#f44336;">❌ Error: ' + e.message + '</span>'; }
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
+<script>
+async function listPRs(type) {
+  var data = await adminCall('list-prs');
+  if (!data || !data.prs) return;
+  var prs = data.prs.filter(function(p){ return p.type === type; });
+  var out = document.getElementById('adminOutput');
+  if (prs.length === 0) {
+    out.innerHTML = '<span style="color:#4CAF50;">✅ No pending ' + (type==='member'?'applications':'articles') + '!</span>';
+    return;
+  }
+  var h = '<strong style="color:#FFD700;">' + (type==='member'?'📋 Pending Applications':'📝 Pending Articles') + ' (' + prs.length + ')</strong><br><br>';
+  prs.forEach(function(pr){
+    h += '<div style="background:#1a1a30;padding:16px;border-radius:8px;margin-bottom:12px;border:1px solid #2a2a45;">';
+    h += '<strong style="color:#fff;font-size:1.05em;">' + pr.title + '</strong><br>';
+    h += '<span style="color:#888;font-size:0.8em;">By ' + pr.author + ' · ' + pr.created_at.split('T')[0] + '</span>';
+    // Parse body for URL and Summary
+    if (pr.body) {
+      var urlMatch = pr.body.match(/\*\*URL:\*\*\s*(https?:\/\/[^\s\n]+)/);
+      var summaryMatch = pr.body.match(/\*\*Summary:\*\*\s*([^\n]+)/);
+      if (urlMatch) {
+        h += '<br><a href="' + urlMatch[1] + '" target="_blank" style="color:#2196F3;font-size:1.1em;text-decoration:none;font-weight:600;display:inline-block;margin-top:6px;">🔗 Read full article ↗</a>';
+      }
+      if (summaryMatch) {
+        h += '<p style="color:#ccc;font-size:0.85em;margin:8px 0;padding:8px;background:#151528;border-radius:4px;border-left:3px solid #FFD700;">' + summaryMatch[1] + '</p>';
+      }
+    }
+    h += '<div style="margin-top:10px;">';
+    h += '<button onclick="mergePR(' + pr.number + ')" style="padding:6px 16px;background:#4CAF50;border:none;border-radius:4px;color:#fff;font-weight:700;cursor:pointer;margin-right:8px;">✅ Approve & ' + (type==='member'?'Add':'Publish') + '</button>';
+    h += '<button onclick="rejectPR(' + pr.number + ')" style="padding:6px 16px;background:#f44336;border:none;border-radius:4px;color:#fff;font-weight:700;cursor:pointer;">❌ Reject</button>';
+    h += '</div></div>';
+  });
+  out.innerHTML = h;
+}
+async function mergePR(number) {
+  if (!confirm('Are you sure you want to approve PR #' + number + '?')) return;
+  var data = await adminCall('merge-pr', {pr_number: number});
+  if (data && data.message) {
+    document.getElementById('adminOutput').innerHTML = '<span style="color:#4CAF50;">✅ ' + data.message + '</span><br><span style="color:#888;">Site will update in ~1 minute.</span>';
+  }
+}
+async function rejectPR(number) {
+  var reason = prompt('Reason for rejection (will be sent to the author):');
+  if (!reason) return;
+  var data = await adminCall('close-pr', {pr_number: number, reason: reason});
+  if (data && data.message) {
+    document.getElementById('adminOutput').innerHTML = '<span style="color:#f44336;">❌ ' + data.message + '</span>';
+  }
+}
+</script>

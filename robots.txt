@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /card-generator.html
+Disallow: /members.html
+
+Sitemap: https://goldenjackets.co.uk/sitemap.xml

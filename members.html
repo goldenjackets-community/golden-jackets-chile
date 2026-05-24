@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golden Jackets Chile - Members Lounge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #151528; color: #e0e0e0; min-height: 100vh; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 40px; background: #1a1a30; border-bottom: 1px solid #2a2a45; }
+    nav .logo { font-size: 1.5em; font-weight: 800; color: #FFD700; }
+    nav .logo span { color: #fff; font-weight: 300; }
+    nav a { color: #888; text-decoration: none; font-size: 1em; transition: color 0.3s; }
+    nav a:hover { color: #FFD700; }
+    .container { max-width: 800px; margin: 0 auto; padding: 60px 20px; }
+    h1 { color: #FFD700; font-size: 2em; margin-bottom: 12px; }
+    .subtitle { color: #888; margin-bottom: 40px; }
+    .card { background: #1a1a30; border: 1px solid #2a2a45; border-radius: 12px; padding: 24px; margin-bottom: 20px; transition: all 0.3s; }
+    .card:hover { border-color: rgba(255,215,0,0.3); box-shadow: 0 0 15px rgba(255,215,0,0.1); }
+    .card h3 { color: #FFD700; margin-bottom: 8px; }
+    .card p { color: #999; font-size: 0.9em; line-height: 1.6; }
+    .card a { color: #FFD700; text-decoration: none; font-weight: 700; }
+    .card a:hover { text-decoration: underline; }
+    .badge { display: inline-block; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: #FFD700; padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 700; margin-bottom: 12px; }
+    footer { text-align: center; padding: 24px 20px; color: #444; font-size: 0.75em; border-top: 1px solid #2a2a45; margin-top: 60px; }
+    footer a { color: #FFD700; text-decoration: none; }
+    .login-box { max-width: 400px; margin: 80px auto; text-align: center; }
+    .login-box h2 { color: #FFD700; margin-bottom: 8px; }
+    .login-box p { color: #888; margin-bottom: 24px; font-size: 0.9em; }
+    .login-box input { width: 100%; padding: 12px 14px; margin-bottom: 12px; background: #1a1a30; border: 1px solid #2a2a45; border-radius: 8px; color: #e0e0e0; font-size: 0.95em; font-family: inherit; }
+    .login-box input:focus { outline: none; border-color: #FFD700; }
+    .login-box button { width: 100%; padding: 12px; background: linear-gradient(135deg, #FFD700, #B8860B); border: none; border-radius: 8px; color: #151528; font-weight: 700; font-size: 1em; cursor: pointer; }
+    .login-box button:hover { opacity: 0.9; }
+    .login-msg { margin-top: 12px; font-size: 0.85em; }
+    .user-info { text-align: right; color: #888; font-size: 0.85em; }
+    .user-info a { color: #FFD700; cursor: pointer; text-decoration: none; margin-left: 12px; }
+    #content { display: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">GJ <span>Chile</span> · Lounge</div>
+    <a href="/">← Back to site</a>
+  </nav>
+  <script src="/config.js"></script>
+
+
+  <!-- Login -->
+  <div class="login-box" id="loginBox">
+    <h2>🔒 Members Lounge</h2>
+    <p>Sign in with your Golden Jackets account</p>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')signIn()">
+    <button onclick="signIn()">Sign In</button>
+    <p class="login-msg" id="loginMsg"></p>
+    <p style="margin-top:16px;font-size:0.85em;">
+      <a onclick="showForgot()" style="color:#FFD700;cursor:pointer;">Forgot password?</a>
+      <span style="color:#444;margin:0 8px;">|</span>
+      <a onclick="showFirstLogin()" style="color:#C0C0C0;cursor:pointer;">Change Password (1st Login)</a>
+    </p>
+    <p style="margin-top:8px;font-size:0.8em;color:#666;">
+      Not a member yet? <a href="/#join" style="color:#FFD700;">Request access</a>
+    </p>
+  </div>
+
+  <!-- First Login - Change Temp Password -->
+  <div class="login-box" id="firstLoginBox" style="display:none;">
+    <h2>🆕 First Login</h2>
+    <p>Enter your email, temporary password, and choose a new password</p>
+    <input type="email" id="firstEmail" placeholder="Email">
+    <input type="password" id="firstTempPass" placeholder="Temporary password">
+    <input type="password" id="firstNewPass" placeholder="New password" onkeydown="if(event.key==='Enter')firstLogin()">
+    <button onclick="firstLogin()">Change Password & Sign In</button>
+    <p class="login-msg" id="firstMsg"></p>
+    <p style="margin-top:16px;font-size:0.85em;">
+      <a onclick="showLogin()" style="color:#FFD700;cursor:pointer;">← Back to login</a>
+    </p>
+  </div>
+
+  <!-- MFA Verification -->
+  <div class="login-box" id="mfaBox" style="display:none;">
+    <h2>🔐 MFA Verification</h2>
+    <p>Enter the 6-digit code from your authenticator app</p>
+    <input type="text" id="mfaCode" placeholder="000000" maxlength="6" style="text-align:center;font-size:1.5em;letter-spacing:8px;" onkeydown="if(event.key==='Enter')verifyMfa()">
+    <button onclick="verifyMfa()">Verify</button>
+    <p class="login-msg" id="mfaMsg"></p>
+  </div>
+
+  <!-- MFA Setup (during login) -->
+  <div class="login-box" id="mfaSetupBox" style="display:none;">
+    <h2>🔐 Setup MFA</h2>
+    <p>Your account requires two-factor authentication. Scan the QR code below with Google Authenticator or any TOTP app, then enter the 6-digit code.</p>
+    <div id="mfaSetupLoginOutput" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- Forgot Password -->
+  <div class="login-box" id="forgotBox" style="display:none;">
+    <h2>🔑 Reset Password</h2>
+    <p>Enter your email to receive a reset code</p>
+    <input type="email" id="forgotEmail" placeholder="Email">
+    <button onclick="sendResetCode()">Send Code</button>
+    <div id="resetFields" style="display:none;margin-top:16px;">
+      <input type="text" id="resetCode" placeholder="Verification code">
+      <input type="password" id="newPass" placeholder="New password">
+      <button onclick="confirmReset()">Reset Password</button>
+    </div>
+    <p class="login-msg" id="forgotMsg"></p>
+    <p style="margin-top:16px;font-size:0.85em;">
+      <a onclick="showLogin()" style="color:#FFD700;cursor:pointer;">← Back to login</a>
+    </p>
+  </div>
+
+  <!-- Content (hidden until auth) -->
+  <div id="content">
+    <nav style="background:none;border:none;padding:8px 40px;">
+      <div></div>
+      <div class="user-info" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+
+        <span>
+          <span id="adminBtnWrap" style="display:none;"><a href="/admin.html" style="background:linear-gradient(135deg,#FFD700,#B8860B);color:#151528;padding:4px 14px;border-radius:6px;font-weight:700;font-size:0.8em;text-decoration:none;margin-right:12px;">⚙️ Admin</a></span>
+        <span id="userEmail"></span>
+          <a onclick="signOut()">Sign out</a>
+        </span>
+      </div>
+    </nav>
+
+    <div class="container" style="display:flex;gap:24px;max-width:1000px;">
+      <div style="flex:1;">
+        <h1>🏆 Members Lounge</h1>
+        <p class="subtitle">Welcome, Golden Jacket! This area is exclusive to verified members.</p>
+
+        <div class="card" id="sec-jobs">
+          <span class="badge">Jobs</span>
+          <h3>💼 Job Board</h3>
+          <p>Exclusive opportunities shared by Golden Jacket members.</p>
+          <br>
+          <div id="jobsList" style="max-height:200px;overflow-y:auto;margin-bottom:12px;font-size:0.85em;"></div>
+          <button onclick="toggleJobForm()" id="jobFormBtn" style="width:100%;padding:10px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:6px;color:#151528;font-weight:700;cursor:pointer;">+ Post a Job</button>
+          <div id="jobForm" style="display:none;margin-top:12px;">
+            <input type="text" id="jobCompany" placeholder="Company" style="width:100%;padding:8px;margin-bottom:6px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;">
+            <input type="text" id="jobRole" placeholder="Role / Position" style="width:100%;padding:8px;margin-bottom:6px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;">
+            <input type="text" id="jobLocation" placeholder="Location (Remote, London, etc)" style="width:100%;padding:8px;margin-bottom:6px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;">
+            <input type="url" id="jobLink" placeholder="Link (LinkedIn, site, etc)" style="width:100%;padding:8px;margin-bottom:6px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;">
+            <input type="text" id="jobContact" placeholder="Your LinkedIn URL (for connections)" style="width:100%;padding:8px;margin-bottom:6px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;">
+            <button onclick="postJob()" style="width:100%;padding:10px;background:#3ecf8e;border:none;border-radius:6px;color:#151528;font-weight:700;cursor:pointer;">Submit</button>
+            <p id="jobMsg" style="margin-top:6px;font-size:0.8em;"></p>
+          </div>
+        </div>
+        <div class="card" id="sec-article">
+          <span class="badge">Content</span>
+          <h3>📝 Submit Article</h3>
+          <p>Share your technical content with the community. Articles will be reviewed and published on our website.</p>
+          <br>
+          <div id="articleForm">
+            <input type="text" id="artTitle" placeholder="Article title" style="width:100%;padding:10px;margin-bottom:8px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;font-family:inherit;">
+            <input type="url" id="artUrl" placeholder="Article URL (community.aws, dev.to, etc)" style="width:100%;padding:10px;margin-bottom:8px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;font-family:inherit;">
+            <input type="text" id="artSummary" placeholder="Short summary (1-2 sentences)" style="width:100%;padding:10px;margin-bottom:8px;background:#151528;border:1px solid #2a2a45;border-radius:6px;color:#e0e0e0;font-family:inherit;">
+            <button onclick="submitArticle()" style="width:100%;padding:10px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:6px;color:#151528;font-weight:700;cursor:pointer;">Submit for Review</button>
+            <p id="artMsg" style="margin-top:8px;font-size:0.85em;"></p>
+          </div>
+        </div>
+
+        <div class="card" id="sec-discord">
+          <span class="badge">Community</span>
+          <h3>💬 Discord Server</h3>
+          <p>Join our private Discord server to connect with other Golden Jackets, share experiences, and collaborate on initiatives.</p>
+          <br>
+          <a href="https://discord.gg/qntq7b7UqF" target="_blank">Join Discord →</a>
+        </div>
+
+        <div class="card" id="sec-resources">
+          <span class="badge">Resources</span>
+          <h3>📚 Certification Resources</h3>
+          <p>Curated study materials, exam tips, and strategies shared by our members to help the community grow.</p>
+          <br>
+          <a href="#">Coming soon →</a>
+        </div>
+
+        <div class="card" id="sec-events">
+          <span class="badge">Events</span>
+          <h3>📅 Internal Events</h3>
+          <p>Exclusive meetups, study groups, and community calls for Golden Jacket members only.</p>
+          <br>
+          <a href="#">Coming soon →</a>
+        </div>
+
+
+        <div class="card" id="sec-brand">
+          <span class="badge">Brand</span>
+          <h3>🎨 Brand Assets</h3>
+          <p>Download official Golden Jackets Chile logos, badges, and social media templates.</p>
+          <br>
+          <a href="#">Coming soon →</a>
+        </div>
+
+        <div class="card" id="mfaSetupCard" style="display:none;">
+          <span class="badge">Security</span>
+          <h3>🔐 MFA Setup</h3>
+          <p>Enable two-factor authentication for your admin account.</p>
+          <br>
+          <button onclick="setupMfa()" style="padding:8px 16px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:8px;color:#151528;font-weight:700;cursor:pointer;">Setup MFA</button>
+          <div id="mfaSetupOutput" style="margin-top:12px;"></div>
+        </div>
+
+        
+
+    </div>
+  </div>
+
+  <footer>
+    <p>Golden Jackets Chile © 2026 · Members Lounge</p>
+    <p><a href="/">Back to main site</a></p>
+  </footer>
+
+<script>
+var POOL_ID = 'us-east-1_Z0VzzrmIX';
+var CLIENT_ID = '6p0utci3h0mfsv02k4848vhhch';
+var REGION = 'us-east-1';
+
+// Auto-refresh token function
+async function refreshSession() {
+  var refreshToken = sessionStorage.getItem('gj_refresh');
+  if (!refreshToken) return false;
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.InitiateAuth'},
+      body: JSON.stringify({AuthFlow:'REFRESH_TOKEN_AUTH',ClientId:CLIENT_ID,AuthParameters:{REFRESH_TOKEN:refreshToken}})
+    });
+    var data = await resp.json();
+    if (data.AuthenticationResult) {
+      sessionStorage.setItem('gj_token', data.AuthenticationResult.IdToken);
+      sessionStorage.setItem('gj_access', data.AuthenticationResult.AccessToken);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// Check if already logged in
+var token = sessionStorage.getItem('gj_access');
+var email = sessionStorage.getItem('gj_email');
+if (token) { showContent(email); }
+
+async function signIn() {
+  var emailVal = document.getElementById('loginEmail').value;
+  var passVal = document.getElementById('loginPass').value;
+  var msg = document.getElementById('loginMsg');
+  msg.innerHTML = '<span style="color:#FFD700">Signing in...</span>';
+
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
+      },
+      body: JSON.stringify({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: CLIENT_ID,
+        AuthParameters: {
+          USERNAME: emailVal,
+          PASSWORD: passVal
+        }
+      })
+    });
+    var data = await resp.json();
+
+    if (data.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+      // First login - need to set new password
+      msg.innerHTML = '<span style="color:#FFD700">Setting up your account...</span>';
+      var resp2 = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-amz-json-1.1',
+          'X-Amz-Target': 'AWSCognitoIdentityProviderService.RespondToAuthChallenge'
+        },
+        body: JSON.stringify({
+          ChallengeName: 'NEW_PASSWORD_REQUIRED',
+          ClientId: CLIENT_ID,
+          ChallengeResponses: {
+            USERNAME: emailVal,
+            NEW_PASSWORD: passVal
+          },
+          Session: data.Session
+        })
+      });
+      data = await resp2.json();
+    }
+
+    if (data.AuthenticationResult) {
+      sessionStorage.setItem('gj_token', data.AuthenticationResult.IdToken);
+      sessionStorage.setItem('gj_access', data.AuthenticationResult.AccessToken);
+      sessionStorage.setItem('gj_refresh', data.AuthenticationResult.RefreshToken);
+      sessionStorage.setItem('gj_email', emailVal);
+      showContent(emailVal);
+    } else if (data.ChallengeName === 'SOFTWARE_TOKEN_MFA') {
+      // MFA required - show code input
+      sessionStorage.setItem('gj_mfa_session', data.Session);
+      sessionStorage.setItem('gj_mfa_email', emailVal);
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('mfaBox').style.display = 'block';
+    } else if (data.ChallengeName === 'MFA_SETUP') {
+      // MFA not configured yet - guide user through setup
+      sessionStorage.setItem('gj_mfa_session', data.Session);
+      sessionStorage.setItem('gj_mfa_email', emailVal);
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('mfaSetupBox').style.display = 'block';
+      startMfaSetupLogin(data.Session, emailVal);
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ ' + (data.message || 'Invalid credentials') + '</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error signing in. Try again.</span>';
+  }
+}
+
+function showContent(userEmail) {
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  document.getElementById('userEmail').textContent = userEmail;
+  if (GJ_CONFIG.ADMIN_EMAILS.includes(userEmail)) {
+    document.getElementById('adminBtnWrap').style.display = 'inline';
+    var adminPanel = document.getElementById('sec-admin');
+    if (adminPanel) adminPanel.style.display = 'block';
+    document.getElementById('mfaSetupCard').style.display = 'block';
+  }
+  // LGPD consent banner
+  if (!localStorage.getItem('gj_privacy_accepted')) {
+    var banner = document.createElement('div');
+    banner.id = 'privacyBanner';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a1a30;border-top:2px solid #FFD700;padding:20px;z-index:9999;text-align:center;';
+    banner.innerHTML = '<p style="color:#e0e0e0;margin-bottom:12px;font-size:0.9em;">Atualizamos nossa <a href="/privacy.html" target="_blank" style="color:#FFD700;">Política de Privacidade</a>. Para continuar como membro, confirme que leu e aceita os termos.</p><button onclick="acceptPrivacy(\'' + userEmail + '\')" style="padding:10px 24px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:8px;color:#151528;font-weight:700;cursor:pointer;">Li e aceito a Política de Privacidade</button>';
+    document.body.appendChild(banner);
+  }
+}
+
+async function acceptPrivacy(email) {
+  localStorage.setItem('gj_privacy_accepted', new Date().toISOString());
+  document.getElementById('privacyBanner').remove();
+  try {
+    await fetch(GJ_CONFIG.ADMIN_API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization': sessionStorage.getItem('gj_token')},
+      body: JSON.stringify({action:'privacy-consent', email: email, consentDate: new Date().toISOString()})
+    });
+  } catch(e) { /* consent saved locally even if API fails */ }
+}
+
+async function verifyMfa() {
+  var code = document.getElementById('mfaCode').value;
+  var msg = document.getElementById('mfaMsg');
+  var session = sessionStorage.getItem('gj_mfa_session');
+  var emailVal = sessionStorage.getItem('gj_mfa_email');
+  msg.innerHTML = '<span style="color:#FFD700">Verifying...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.RespondToAuthChallenge'},
+      body: JSON.stringify({ChallengeName:'SOFTWARE_TOKEN_MFA',ClientId:CLIENT_ID,ChallengeResponses:{USERNAME:emailVal,SOFTWARE_TOKEN_MFA_CODE:code},Session:session})
+    });
+    var data = await resp.json();
+    if (data.AuthenticationResult) {
+      sessionStorage.setItem('gj_token', data.AuthenticationResult.IdToken);
+      sessionStorage.setItem('gj_access', data.AuthenticationResult.AccessToken);
+      sessionStorage.setItem('gj_refresh', data.AuthenticationResult.RefreshToken || sessionStorage.getItem('gj_refresh'));
+      sessionStorage.setItem('gj_email', emailVal);
+      sessionStorage.removeItem('gj_mfa_session');
+      sessionStorage.removeItem('gj_mfa_email');
+      document.getElementById('mfaBox').style.display = 'none';
+      showContent(emailVal);
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ Invalid code. Try again.</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error verifying. Try again.</span>';
+  }
+}
+
+async function startMfaSetupLogin(session, emailVal) {
+  var out = document.getElementById('mfaSetupLoginOutput');
+  out.innerHTML = '<span style="color:#FFD700">Generating QR code...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.AssociateSoftwareToken'},
+      body: JSON.stringify({Session: session})
+    });
+    var data = await resp.json();
+    if (data.SecretCode) {
+      sessionStorage.setItem('gj_mfa_session', data.Session);
+      var otpauth = 'otpauth://totp/GoldenJackets:' + emailVal + '?secret=' + data.SecretCode + '&issuer=GoldenJackets';
+      var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(otpauth);
+      out.innerHTML = '<img src="' + qrUrl + '" style="border-radius:8px;margin-bottom:12px;"><br>' +
+        '<input type="text" id="mfaSetupLoginCode" placeholder="000000" maxlength="6" style="text-align:center;font-size:1.5em;letter-spacing:8px;width:200px;padding:8px;background:#1a1a30;border:1px solid #2a2a45;border-radius:8px;color:#e0e0e0;" onkeydown="if(event.key===\'Enter\')confirmMfaSetupLogin()">' +
+        '<br><button onclick="confirmMfaSetupLogin()" style="margin-top:12px;padding:10px 24px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:8px;color:#151528;font-weight:700;cursor:pointer;">Verify & Complete Setup</button>' +
+        '<p id="mfaSetupLoginMsg" style="margin-top:8px;font-size:0.85em;"></p>';
+    } else {
+      out.innerHTML = '<span style="color:#f44336">❌ Error: ' + (data.message || 'Try again') + '</span>';
+    }
+  } catch(e) {
+    out.innerHTML = '<span style="color:#f44336">❌ Error setting up MFA.</span>';
+  }
+}
+
+async function confirmMfaSetupLogin() {
+  var code = document.getElementById('mfaSetupLoginCode').value;
+  var session = sessionStorage.getItem('gj_mfa_session');
+  var emailVal = sessionStorage.getItem('gj_mfa_email');
+  var msg = document.getElementById('mfaSetupLoginMsg');
+  msg.innerHTML = '<span style="color:#FFD700">Verifying...</span>';
+  try {
+    // Verify the TOTP code
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.VerifySoftwareToken'},
+      body: JSON.stringify({Session: session, UserCode: code, FriendlyDeviceName: 'Authenticator'})
+    });
+    var data = await resp.json();
+    if (data.Status === 'SUCCESS') {
+      // Complete the MFA_SETUP challenge
+      var resp2 = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.RespondToAuthChallenge'},
+        body: JSON.stringify({ChallengeName:'MFA_SETUP',ClientId:CLIENT_ID,ChallengeResponses:{USERNAME:emailVal},Session:data.Session})
+      });
+      var data2 = await resp2.json();
+      if (data2.AuthenticationResult) {
+        sessionStorage.setItem('gj_token', data2.AuthenticationResult.IdToken);
+        sessionStorage.setItem('gj_access', data2.AuthenticationResult.AccessToken);
+        sessionStorage.setItem('gj_refresh', data2.AuthenticationResult.RefreshToken);
+        sessionStorage.setItem('gj_email', emailVal);
+        sessionStorage.removeItem('gj_mfa_session');
+        sessionStorage.removeItem('gj_mfa_email');
+        document.getElementById('mfaSetupBox').style.display = 'none';
+        showContent(emailVal);
+      } else {
+        msg.innerHTML = '<span style="color:#f44336">❌ ' + (data2.message || 'Error completing setup') + '</span>';
+      }
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ Invalid code. Try again.</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error. Try again.</span>';
+  }
+}
+
+async function setupMfa() {
+  var token = sessionStorage.getItem('gj_access');
+  var out = document.getElementById('mfaSetupOutput');
+  out.innerHTML = '<span style="color:#FFD700">Generating QR code...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.AssociateSoftwareToken'},
+      body: JSON.stringify({AccessToken:token})
+    });
+    var data = await resp.json();
+    if (data.SecretCode) {
+      var email = sessionStorage.getItem('gj_email');
+      var otpauth = 'otpauth://totp/GoldenJacketsChile:' + email + '?secret=' + data.SecretCode + '&issuer=GoldenJacketsChile';
+      var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(otpauth);
+      out.innerHTML = '<p style="color:var(--gold);margin-bottom:12px;">Scan this QR code with Google Authenticator:</p>' +
+        '<img src="' + qrUrl + '" style="border-radius:8px;margin-bottom:12px;"><br>' +
+        '<input type="text" id="mfaSetupCode" placeholder="Enter 6-digit code" maxlength="6" style="text-align:center;font-size:1.2em;letter-spacing:6px;width:200px;padding:8px;margin-bottom:8px;background:#1a1a30;border:1px solid #2a2a45;border-radius:8px;color:#e0e0e0;">' +
+        '<br><button onclick="confirmMfaSetup()" style="padding:8px 20px;background:linear-gradient(135deg,#FFD700,#B8860B);border:none;border-radius:8px;color:#151528;font-weight:700;cursor:pointer;">Confirm MFA</button>' +
+        '<p id="mfaSetupMsg" style="margin-top:8px;font-size:0.85em;"></p>';
+    } else {
+      out.innerHTML = '<span style="color:#f44336">❌ Error: ' + (data.message || 'Try again') + '</span>';
+    }
+  } catch(e) {
+    out.innerHTML = '<span style="color:#f44336">❌ Error setting up MFA.</span>';
+  }
+}
+
+async function confirmMfaSetup() {
+  var code = document.getElementById('mfaSetupCode').value;
+  var token = sessionStorage.getItem('gj_access');
+  var msg = document.getElementById('mfaSetupMsg');
+  msg.innerHTML = '<span style="color:#FFD700">Verifying...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.VerifySoftwareToken'},
+      body: JSON.stringify({AccessToken:token,UserCode:code,FriendlyDeviceName:'GoogleAuthenticator'})
+    });
+    var data = await resp.json();
+    if (data.Status === 'SUCCESS') {
+      // Enable MFA preference
+      await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.SetUserMFAPreference'},
+        body: JSON.stringify({AccessToken:token,SoftwareTokenMfaSettings:{Enabled:true,PreferredMfa:true}})
+      });
+      document.getElementById('mfaSetupOutput').innerHTML = '<span style="color:#4CAF50">✅ MFA enabled! Next login will require authenticator code.</span>';
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ Invalid code. Try again.</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error. Try again.</span>';
+  }
+}
+
+function signOut() {
+  if (window._gjTracker) window._gjTracker("logout");
+  sessionStorage.removeItem('gj_token');
+  sessionStorage.removeItem('gj_access');
+  sessionStorage.removeItem('gj_email');
+  sessionStorage.removeItem('gj_session_id');
+  document.getElementById('loginBox').style.display = 'block';
+  document.getElementById('content').style.display = 'none';
+}
+
+async function submitArticle() {
+  var msg = document.getElementById('artMsg');
+  var title = document.getElementById('artTitle').value.trim();
+  var url = document.getElementById('artUrl').value.trim();
+  var summary = document.getElementById('artSummary').value.trim();
+  if (!title || !url || !summary) { msg.innerHTML = '<span style="color:#f44336">❌ Please fill in all fields (title, URL, and summary).</span>'; return; }
+  if (!url.startsWith('http')) { msg.innerHTML = '<span style="color:#f44336">❌ Please enter a valid URL starting with http.</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700">Submitting...</span>';
+  var author = sessionStorage.getItem('gj_email') || 'unknown';
+  try {
+    var resp = await fetch(GJ_CONFIG.ADMIN_API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': sessionStorage.getItem('gj_token')},
+      body: JSON.stringify({
+        action: 'submit-article',
+        title: title,
+        url: url,
+        summary: summary,
+        author: author
+      })
+    });
+    var data = await resp.json();
+    if (resp.ok) {
+      document.getElementById('articleForm').innerHTML = '<p style="color:#4CAF50;">✅ Article submitted for review! We\'ll publish it shortly.</p>';
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ ' + (data.error || 'Error') + '</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error submitting. Try again.</span>';
+  }
+}
+
+function showForgot() {
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('firstLoginBox').style.display = 'none';
+  document.getElementById('forgotBox').style.display = 'block';
+}
+
+function showFirstLogin() {
+  document.getElementById('loginBox').style.display = 'none';
+  document.getElementById('forgotBox').style.display = 'none';
+  document.getElementById('firstLoginBox').style.display = 'block';
+}
+
+function showLogin() {
+  document.getElementById('forgotBox').style.display = 'none';
+  document.getElementById('firstLoginBox').style.display = 'none';
+  document.getElementById('loginBox').style.display = 'block';
+}
+
+async function firstLogin() {
+  var email = document.getElementById('firstEmail').value;
+  var tempPass = document.getElementById('firstTempPass').value;
+  var newPass = document.getElementById('firstNewPass').value;
+  var msg = document.getElementById('firstMsg');
+  if (!email || !tempPass || !newPass) { msg.innerHTML = '<span style="color:#f44336">Please fill all fields</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700">Signing in...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'},
+      body: JSON.stringify({AuthFlow: 'USER_PASSWORD_AUTH', ClientId: CLIENT_ID, AuthParameters: {USERNAME: email, PASSWORD: tempPass}})
+    });
+    var data = await resp.json();
+    if (data.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+      var resp2 = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': 'AWSCognitoIdentityProviderService.RespondToAuthChallenge'},
+        body: JSON.stringify({ChallengeName: 'NEW_PASSWORD_REQUIRED', ClientId: CLIENT_ID, ChallengeResponses: {USERNAME: email, NEW_PASSWORD: newPass}, Session: data.Session})
+      });
+      var data2 = await resp2.json();
+      if (data2.AuthenticationResult) {
+        sessionStorage.setItem('gj_token', data2.AuthenticationResult.IdToken);
+        sessionStorage.setItem('gj_email', email);
+        showContent(email);
+      } else {
+        msg.innerHTML = '<span style="color:#f44336">❌ ' + (data2.message || 'Error setting password') + '</span>';
+      }
+    } else if (data.AuthenticationResult) {
+      msg.innerHTML = '<span style="color:#4CAF50">✅ Password already changed. Use regular Sign In.</span>';
+      setTimeout(showLogin, 2000);
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ ' + (data.message || 'Invalid credentials') + '</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error. Try again.</span>';
+  }
+}
+
+async function sendResetCode() {
+  var email = document.getElementById('forgotEmail').value;
+  var msg = document.getElementById('forgotMsg');
+  msg.innerHTML = '<span style="color:#FFD700">Sending code...</span>';
+  try {
+    await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.ForgotPassword'},
+      body: JSON.stringify({ClientId: CLIENT_ID, Username: email})
+    });
+    document.getElementById('resetFields').style.display = 'block';
+    msg.innerHTML = '<span style="color:#4CAF50">✅ Code sent to your email!</span>';
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error sending code</span>';
+  }
+}
+
+async function confirmReset() {
+  var email = document.getElementById('forgotEmail').value;
+  var code = document.getElementById('resetCode').value;
+  var newPass = document.getElementById('newPass').value;
+  var msg = document.getElementById('forgotMsg');
+  msg.innerHTML = '<span style="color:#FFD700">Resetting...</span>';
+  try {
+    var resp = await fetch('https://cognito-idp.' + REGION + '.amazonaws.com/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-amz-json-1.1','X-Amz-Target':'AWSCognitoIdentityProviderService.ConfirmForgotPassword'},
+      body: JSON.stringify({ClientId: CLIENT_ID, Username: email, ConfirmationCode: code, Password: newPass})
+    });
+    var data = await resp.json();
+    if (resp.ok) {
+      msg.innerHTML = '<span style="color:#4CAF50">✅ Password reset! You can now sign in.</span>';
+      setTimeout(showLogin, 2000);
+    } else {
+      msg.innerHTML = '<span style="color:#f44336">❌ ' + (data.message || 'Error') + '</span>';
+    }
+  } catch(e) {
+    msg.innerHTML = '<span style="color:#f44336">❌ Error resetting password</span>';
+  }
+}
+</script>
+<script>
+(function(){
+  var TRACKER_URL='https://uf3x2i7xr7rziz4nswkmsd4k5i0dunaj.lambda-url.us-east-1.on.aws/';
+  var heartbeatTimer=null;
+  function getSessionId(){var s=sessionStorage.getItem('gj_session_id');if(!s){s=Date.now().toString(36)+Math.random().toString(36).substr(2,9);sessionStorage.setItem('gj_session_id',s);}return s;}
+  function track(action,page){var email=sessionStorage.getItem('gj_email');if(!email)return;try{navigator.sendBeacon(TRACKER_URL,JSON.stringify({email:email,action:action,page:page||location.pathname,session_id:getSessionId()}));}catch(e){}}
+  window._gjTracker=track;
+  var origShowContent=window.showContent;
+  window.showContent=function(email){origShowContent(email);track('session_start','/members');if(heartbeatTimer)clearInterval(heartbeatTimer);heartbeatTimer=setInterval(function(){track('heartbeat');},60000);};
+  document.addEventListener('visibilitychange',function(){if(document.hidden){track('tab_hidden');}else{track('tab_visible');}});
+  window.addEventListener('beforeunload',function(){track('page_leave');});
+})();
+</script>
+</body>
+</html>
+<script>
+var ADMIN_EMAILS = GJ_CONFIG.ADMIN_EMAILS;
+var ADMIN_API = GJ_CONFIG.ADMIN_API;
+
+function toggleAdmin() {
+  var panel = document.getElementById('sec-admin');
+  var email = sessionStorage.getItem('gj_email');
+  if (ADMIN_EMAILS.includes(email)) {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  } else {
+    alert('Admin access restricted.');
+  }
+}
+
+async function adminCall(action, extra) {
+  var out = document.getElementById('adminOutput');
+  out.style.display = 'block';
+  out.innerHTML = '<span style="color:#FFD700;">Loading...</span>';
+  try {
+    var body = Object.assign({action: action}, extra || {});
+    var resp = await fetch(ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    var data = await resp.json();
+    return data;
+  } catch(e) {
+    out.innerHTML = '<span style="color:#f44336;">Error: ' + e.message + '</span>';
+    return null;
+  }
+}
+
+async function listUsers() {
+  var data = await adminCall('list-users');
+  if (!data || !data.users) return;
+  var out = document.getElementById('adminOutput');
+  var confirmed = data.users.filter(function(u){return u.status==='CONFIRMED';});
+  var pending = data.users.filter(function(u){return u.status!=='CONFIRMED';});
+  var html = '<strong style="color:#FFD700;">Total: ' + data.users.length + ' users (' + confirmed.length + ' confirmed, ' + pending.length + ' pending)</strong><br><br>';
+  html += '<strong style="color:#4CAF50;">✅ Confirmed:</strong><br>';
+  confirmed.forEach(function(u){ html += u.email + '<br>'; });
+  html += '<br><strong style="color:#ff9800;">⏳ Pending:</strong><br>';
+  pending.forEach(function(u){ html += u.email + '<br>'; });
+  out.innerHTML = html;
+}
+
+async function resendAll() {
+  var data = await adminCall('resend-pending');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ Resent to ' + data.count + ' users:</strong><br><br>' + data.resent.join('<br>');
+}
+
+function toggleCreateForm() {
+  var form = document.getElementById('createUserForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function createUser() {
+  var name = document.getElementById('newUserName').value;
+  var email = document.getElementById('newUserEmail').value;
+  var type = document.getElementById('newUserType').value;
+  var msg = document.getElementById('createMsg');
+  if (!name || !email) { msg.innerHTML = '<span style="color:#f44336;">Name and email required</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700;">Creating user...</span>';
+  var data = await adminCall('create-user', {email: email, name: name, type: type});
+  if (!data) return;
+  msg.innerHTML = '<span style="color:#4CAF50;">✅ ' + data.message + '</span>';
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserEmail').value = '';
+}
+
+async function backupStatus() {
+  var data = await adminCall('backup-status');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  if (data.jobs && data.jobs.length > 0) {
+    var h = '<strong style="color:#4CAF50;">💾 Latest Backup: ' + data.latest + '</strong><br>';
+    h += '<span style="color:var(--text-muted);font-size:0.85em;">Total backups: ' + data.total_backups + '</span><br><br>';
+    data.jobs.forEach(function(j){ h += j.status + ' ' + j.resource + ' — ' + j.date + '<br>'; });
+    out.innerHTML = h;
+  } else {
+    out.innerHTML = '<span style="color:#f44336;">⚠️ No backups found.</span><br><span style="color:var(--text-muted);font-size:0.85em;">Click "Backup Now" to create your first backup.</span>';
+  }
+}
+
+async function restoreBackup() {
+  if (!confirm('Restore site from latest backup? This will overwrite current S3 content.')) return;
+  var data = await adminCall('restore-backup');
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ ' + data.message + '</strong>';
+}
+
+async function deleteUser() {
+  var email = prompt('Enter email to delete:');
+  if (!email) return;
+  if (!confirm('Delete user ' + email + '? This cannot be undone.')) return;
+  var data = await adminCall('delete-user', {email: email});
+  if (!data) return;
+  var out = document.getElementById('adminOutput');
+  out.innerHTML = '<strong style="color:#4CAF50;">✅ ' + data.message + '</strong>';
+}
+
+// Job Board
+function toggleJobForm() {
+  var form = document.getElementById('jobForm');
+  var btn = document.getElementById('jobFormBtn');
+  if (form.style.display === 'none') { form.style.display = 'block'; btn.textContent = '✕ Cancel'; }
+  else { form.style.display = 'none'; btn.textContent = '+ Post a Job'; }
+}
+async function loadJobs() {
+  try {
+    var resp = await fetch(GJ_CONFIG.ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':sessionStorage.getItem('gj_token')}, body:JSON.stringify({action:'list-jobs'})});
+    var data = await resp.json();
+    var list = document.getElementById('jobsList');
+    var myEmail = sessionStorage.getItem('gj_email') || '';
+    if (!data.jobs || data.jobs.length === 0) { list.innerHTML = '<p style="color:#666;">No jobs posted yet. Be the first!</p>'; return; }
+    list.innerHTML = data.jobs.map(j => {
+      var isOwner = (j.posted_by === myEmail) || (myEmail === 'ricardo.gulias@goldenjacketsbrazil.com');
+      var actions = isOwner ? ` · <a href="#" onclick="removeJob('${j.id}');return false;" style="color:#ef4444;font-size:0.8em;">🗑️ Remove</a>` : '';
+      var applyBtn = !isOwner ? ` · <a href="#" onclick="applyJob('${j.id}');return false;" style="color:#3ecf8e;font-weight:700;">🙋 I'm Interested</a>` : '';
+      var externalLink = j.link ? ` · <a href="${j.link}" target="_blank" style="color:#888;font-size:0.8em;">🔗 External Link</a>` : '';
+      return `<div style="border-bottom:1px solid #2a2a45;padding:8px 0;"><strong style="color:#FFD700;">${j.role}</strong> @ ${j.company}<br><span style="color:#888;font-size:0.8em;">${j.location}</span>${applyBtn}${externalLink}${j.contact ? ` · <a href="${j.contact.startsWith('http') ? j.contact : 'mailto:'+j.contact}" target="_blank" style="color:#a855f7;font-size:0.8em;">Connect with poster</a>` : ''}${actions}<br><span style="color:#555;font-size:0.7em;">Posted by ${j.posted_by}</span></div>`;
+    }).join('');
+  } catch(e) {}
+}
+async function postJob() {
+  var msg = document.getElementById('jobMsg');
+  var body = {action:'post-job', company:document.getElementById('jobCompany').value, role:document.getElementById('jobRole').value, location:document.getElementById('jobLocation').value, link:document.getElementById('jobLink').value, contact:document.getElementById('jobContact').value};
+  if (!body.company || !body.role) { msg.innerHTML = '<span style="color:#f44336">Company and Role are required.</span>'; return; }
+  msg.innerHTML = '<span style="color:#FFD700">Posting...</span>';
+  try {
+    var resp = await fetch(GJ_CONFIG.ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':sessionStorage.getItem('gj_token')}, body:JSON.stringify(body)});
+    var data = await resp.json();
+    msg.innerHTML = '<span style="color:#3ecf8e">✅ Job posted!</span>';
+    document.getElementById('jobForm').style.display = 'none';
+    document.getElementById('jobFormBtn').textContent = '+ Post a Job';
+    document.getElementById('jobCompany').value = '';
+    document.getElementById('jobRole').value = '';
+    document.getElementById('jobLocation').value = '';
+    document.getElementById('jobLink').value = '';
+    document.getElementById('jobContact').value = '';
+    loadJobs();
+  } catch(e) { msg.innerHTML = '<span style="color:#f44336">Error posting.</span>'; }
+}
+async function removeJob(id) {
+  if (!confirm('Remove this job?')) return;
+  await fetch(GJ_CONFIG.ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':sessionStorage.getItem('gj_token')}, body:JSON.stringify({action:'delete-job', id:id})});
+  loadJobs();
+}
+async function applyJob(id) {
+  if (!confirm('Express interest in this job? The poster will be notified with your email.')) return;
+  try {
+    var resp = await fetch(GJ_CONFIG.ADMIN_API, {method:'POST', headers:{'Content-Type':'application/json','Authorization':sessionStorage.getItem('gj_token')}, body:JSON.stringify({action:'apply-job', id:id})});
+    var data = await resp.json();
+    alert(data.message || 'Interest sent!');
+  } catch(e) { alert('Error. Try again.'); }
+}
+// Load jobs on page load
+if (sessionStorage.getItem('gj_token')) setTimeout(loadJobs, 1000);
+</script>

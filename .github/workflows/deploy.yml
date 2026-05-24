@@ -1,0 +1,121 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_GJ }}:role/github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Auto-number member cards
+        run: |
+          MAX=$(grep -oP '(?<=<span class="card-number">#)\d+' index.html | head -$(grep -n '<!-- Alumni' index.html | head -1 | cut -d: -f1) | sort -n | tail -1)
+          [ -z "$MAX" ] && MAX=0
+          ALUMNI_LINE=$(grep -n '<!-- Alumni' index.html | head -1 | cut -d: -f1)
+          [ -z "$ALUMNI_LINE" ] && ALUMNI_LINE=99999
+          CHANGED=false
+          while IFS= read -r line_num; do
+            NEXT_LINE=$((line_num + 1))
+            NEXT_CONTENT=$(sed -n "${NEXT_LINE}p" index.html)
+            if echo "$NEXT_CONTENT" | grep -q 'card-number'; then
+              continue
+            fi
+            if echo "$NEXT_CONTENT" | grep -q '<img src='; then
+              MAX=$((MAX + 1))
+              sed -i "${line_num}a\\        <span class=\"card-number\">#${MAX}</span>" index.html
+              CHANGED=true
+            fi
+          done < <(head -n "$ALUMNI_LINE" index.html | grep -n 'class="member-card"' | grep -v 'alumni\|challenger' | cut -d: -f1)
+          if [ "$CHANGED" = true ]; then
+            echo "✅ Auto-numbered new cards up to #$MAX"
+          else
+            echo "ℹ️ All cards already numbered"
+          fi
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync . s3://goldenjackets.cl/ \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude ".gitignore" \
+            --exclude "README.md" \
+            --exclude "SECURITY.md"
+
+  invalidate:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_GJ }}:role/github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} \
+            --paths "/*"
+
+  smoke-test:
+    needs: [invalidate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for CloudFront propagation
+        run: sleep 30
+
+      - name: Check site is online
+        run: |
+          echo "🔍 Smoke Test Starting..."
+          ERRORS=0
+
+          HTTP=$(curl -s -o /tmp/index.html -w "%{http_code}" https://d245cwyl4dcv9y.cloudfront.net)
+          echo "Main site: HTTP $HTTP"
+          [ "$HTTP" = "200" ] && echo "  ✅ OK" || { echo "  ❌ FAIL"; ERRORS=$((ERRORS+1)); }
+
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" https://d245cwyl4dcv9y.cloudfront.net/members.html)
+          echo "Lounge: HTTP $HTTP"
+          [ "$HTTP" = "200" ] && echo "  ✅ OK" || { echo "  ❌ FAIL"; ERRORS=$((ERRORS+1)); }
+
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" https://d245cwyl4dcv9y.cloudfront.net/admin.html)
+          echo "Admin: HTTP $HTTP"
+          [ "$HTTP" = "200" ] && echo "  ✅ OK" || { echo "  ❌ FAIL"; ERRORS=$((ERRORS+1)); }
+
+          GOLDEN=$(grep -c 'member-card" data-state\|member-card founder" data-state\|member-card cofounder" data-state' /tmp/index.html || echo 0)
+          CHALLENGERS=$(grep -c 'member-card challenger" data-state' /tmp/index.html || echo 0)
+          echo "Golden Jackets: $GOLDEN | Challengers: $CHALLENGERS"
+          [ "$GOLDEN" -ge 1 ] && echo "  ✅ Card count OK" || { echo "  ❌ Too few cards ($GOLDEN)"; ERRORS=$((ERRORS+1)); }
+
+          echo ""
+          if [ "$ERRORS" -eq 0 ]; then
+            echo "✅ ALL SMOKE TESTS PASSED"
+          else
+            echo "❌ $ERRORS TEST(S) FAILED"
+            exit 1
+          fi
+
+  notify-global:
+    needs: [smoke-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger global stats update
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/goldenjackets-community/golden-jackets-global/dispatches \
+            -d '{"event_type":"chapter-updated","client_payload":{"chapter":"chile"}}'
+          echo "✅ Global stats update triggered"
