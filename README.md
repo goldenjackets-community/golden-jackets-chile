@@ -1,6 +1,6 @@
-# Golden Jackets Chile 🧥🇬🇧
+# Golden Jackets Chile 🧥🇨🇱
 
-Community of AWS professionals who hold all 12 active AWS certifications — the Golden Jacket holders of the Chile.
+Community of AWS professionals who hold all 12 active AWS certifications — the Golden Jacket holders of Chile.
 
 ## Website
 
@@ -18,6 +18,8 @@ Community of AWS professionals who hold all 12 active AWS certifications — the
 │   ├── partners/       # Partner logos
 │   ├── badges/         # AWS certification badges
 │   └── *.png / *.jpg   # Site assets
+├── .kiro/
+│   └── steering/       # AI development context (not deployed)
 ├── .github/
 │   └── workflows/
 │       ├── deploy.yml          # S3 deploy + CloudFront invalidation
@@ -26,6 +28,15 @@ Community of AWS professionals who hold all 12 active AWS certifications — the
 ├── SECURITY.md
 └── README.md
 ```
+
+## Developer Tooling
+
+| Tool | Purpose |
+|------|---------|
+| **Kiro CLI** | AI-assisted development (code, deploy, operations) |
+| **MCP Server** | Custom tools for community management (list members, invalidate cache, chapter status) |
+| **Steering Files** | AI context rules (conventions, security, infrastructure) — `.kiro/steering/` |
+| **Knowledge Bases** | Indexed project history and architecture for cross-session context |
 
 ## CI/CD
 
@@ -40,18 +51,6 @@ Community of AWS professionals who hold all 12 active AWS certifications — the
 - Triggers on PR merge (new members)
 - Creates Cognito user
 - Sends welcome email
-
-## Infrastructure
-
-| Component | Value |
-|-----------|-------|
-| S3 Bucket | `goldenjackets.cl` |
-| CloudFront | `E10YX1BT67IAVC` (`d245cwyl4dcv9y.cloudfront.net`) |
-| Route 53 | `Z07759013CMW6IJZYOD7K` (hosted in account 958919067803) |
-| ACM Certificate | `goldenjackets.cl` + `www.goldenjackets.cl` |
-| Cognito Group | `chile` |
-| Backup Vault | `gj-chile-backups` |
-| AWS Account | `800712212925` (profile: gj) |
 
 ## Admin Features
 
@@ -76,4 +75,8 @@ For technical contributions, please open an issue or pull request.
 ---
 
 *Independent community, not officially affiliated with Amazon Web Services.*
-*Last updated: 17/05/2026*
+*Last updated: 25/05/2026*
+
+## 🤖 Built With AI
+
+This project was entirely built using **Kiro CLI** (powered by Claude, Anthropic) — from HTML/CSS/JS to AWS infrastructure, Lambda functions, CI/CD pipelines, and admin panel. Development is accelerated with MCP Server (custom tools), Steering Files (AI context), and Knowledge Bases (persistent memory).
