@@ -44,7 +44,13 @@ jobs:
             --desired-delivery-mediums EMAIL \
             || echo "User may already exist"
           
-          echo "✅ Cognito user created. Welcome email sent to $EMAIL"
+          aws cognito-idp admin-add-user-to-group \
+            --user-pool-id ${{ secrets.COGNITO_POOL_ID }} \
+            --username "$EMAIL" \
+            --group-name chile \
+            || echo "Failed to add to group"
+          
+          echo "✅ Cognito user created and added to chile group. Welcome email sent to $EMAIL"
 
       - name: Wait 30 minutes before welcome email
         run: |
