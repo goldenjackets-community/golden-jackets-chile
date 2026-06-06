@@ -43,6 +43,12 @@ jobs:
             --user-attributes Name=email,Value="$EMAIL" Name=email_verified,Value=true \
             --desired-delivery-mediums EMAIL \
             || echo "User may already exist"
+
+          aws cognito-idp admin-add-user-to-group \
+            --user-pool-id ${{ secrets.COGNITO_POOL_ID }} \
+            --username "$EMAIL" \
+            --group-name chile \
+            || echo "Failed to add to group"
           
           echo "✅ Cognito user created. Welcome email sent to $EMAIL"
 
