@@ -1187,7 +1187,7 @@ setInterval(updateCountdowns, 1000);
       var state = match[1];
       var goldEl = pin.querySelector('.gold-count');
       var silverEl = pin.querySelector('.silver-count');
-      if (goldEl && goldCounts[state]) goldEl.textContent = goldCounts[state];
+      // if (goldEl && goldCounts[state]) goldEl.textContent = goldCounts[state];
       if (silverEl && silverCounts[state]) silverEl.textContent = silverCounts[state];
       // Hide silver section if no challengers in this state
       var silverParent = silverEl ? silverEl.parentElement : null;
