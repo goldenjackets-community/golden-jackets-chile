@@ -1003,7 +1003,9 @@
       var name=document.getElementById('sponsorName').value;
       var company=document.getElementById('sponsorCompany').value;
       var email=document.getElementById('sponsorEmail').value;
+      var tier=document.getElementById('sponsorTier').value;
       
+      if(!tier){s.innerHTML='<span style="color:#f44336">Please select an option. If you want to apply as a Golden Jacket, Alumni, or Challenger, use the <a href="#" onclick="document.getElementById(\'applyForm\').classList.add(\'open\');return false;" style="color:#FFD700;text-decoration:underline;">application form below</a>.</span>';return;}
       if(!name||!email){s.innerHTML='<span style="color:#f44336">Please fill in name and email</span>';return;}
       s.innerHTML='<span style="color:var(--gold)">Sending...</span>';
       fetch('https://kqiq2bltjd.execute-api.us-east-1.amazonaws.com/sponsor',{method:'POST',headers:{'Content-Type':'application/json'},
