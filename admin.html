@@ -552,6 +552,8 @@ async function listPRs(type) {
       var urlMatch = pr.body.match(/\*\*URL:\*\*\s*(https?:\/\/[^\s\n]+)/);
       var summaryMatch = pr.body.match(/\*\*Summary:\*\*\s*([^\n]+)/);
       var linkedinMatch = pr.body.match(/\*\*LinkedIn:\*\*\s*(https?:\/\/[^\s\n]+)/);
+      var typeMatch = pr.body.match(/\*\*Type:\*\*\s*([^\n]+)/);
+      if (typeMatch) { var typeLabel = typeMatch[1].trim(); if(typeLabel==="golden") typeLabel="Golden Jacket"; else if(typeLabel==="challenger11") typeLabel="Challenger 11/12"; else if(typeLabel==="challenger10") typeLabel="Challenger 10/12"; else if(typeLabel==="alumni") typeLabel="Alumni"; h += '<br><span style="color:#FFD700;font-size:0.85em;font-weight:600;">🏷️ Type: ' + typeLabel + '</span>'; }
       if (linkedinMatch) { h += '<br><a href="' + linkedinMatch[1] + '" target="_blank" style="color:#0077B5;font-size:0.9em;text-decoration:none;font-weight:600;display:inline-block;margin-top:6px;">🔗 LinkedIn Profile ↗</a>'; }
       if (urlMatch) {
         h += '<br><a href="' + urlMatch[1] + '" target="_blank" style="color:#2196F3;font-size:1.1em;text-decoration:none;font-weight:600;display:inline-block;margin-top:6px;">🔗 Read full article ↗</a>';
