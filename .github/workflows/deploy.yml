@@ -104,18 +104,3 @@ jobs:
             echo "❌ $ERRORS TEST(S) FAILED"
             exit 1
           fi
-
-  notify-global:
-    needs: [smoke-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger global stats update
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          curl -X POST \
-            -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/goldenjackets-community/golden-jackets-global/dispatches \
-            -d '{"event_type":"chapter-updated","client_payload":{"chapter":"chile"}}'
-          echo "✅ Global stats update triggered"
