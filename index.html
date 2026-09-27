@@ -973,8 +973,8 @@
         <option value="challenger11">⚔️ Challenger — 11 of 12 certifications</option>
         <option value="challenger10">⚔️ Challenger — 10 of 12 certifications</option>
       </select>
-      <label>Photo</label>
-      <input type="file" id="applyPhoto" accept="image/*">
+      <label>Photo <span style="color:#f44336;">*</span></label>
+      <input type="file" id="applyPhoto" accept="image/*" required>
       <div style="margin:12px 0;display:flex;align-items:flex-start;gap:8px;">
         <input type="checkbox" id="applyConsent" style="margin-top:6px;width:auto;">
         <label for="applyConsent" style="font-size:0.8em;color:#999;cursor:pointer;">Li e concordo com a <a href="/privacy.html" target="_blank" style="color:#FFD700;">Privacy Policy</a>. Autorizo a exibição do meu nome, foto e cidade no site da comunidade.</label>
@@ -1162,6 +1162,7 @@ async function submitApplication() {
     var photoB64 = '';
     var photoName = '';
     var fileInput = document.getElementById('applyPhoto');
+    if (!fileInput.files || fileInput.files.length === 0) { msg.innerHTML = '<span style="color:#f44336">❌ A photo is required. Please attach your photo to apply.</span>'; return; }
     if (fileInput.files.length > 0) {
       var file = fileInput.files[0];
       if (file.size > 3 * 1024 * 1024) {
