@@ -9,6 +9,7 @@ Always apply when editing any file in this repository.
 - CSS uses custom properties (variables) defined in :root
 - Bilingual support: all user-facing text must have EN and ES translations
 - Member photos go in `assets/members/` as JPG
+- Member photo is REQUIRED in the apply form (client-side `required` + JS guard) — applications without a photo are blocked to avoid broken member cards
 - Badge images go in `assets/badges/` as PNG
 - Config values (API URLs, Cognito IDs) live in `config.js` — never hardcode in HTML
 - Keep the site lightweight — no external JS libraries unless absolutely necessary
